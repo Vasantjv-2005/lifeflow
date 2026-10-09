@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Types } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 /**
  * Represents a single step in a scenario timeline.
@@ -23,7 +23,7 @@ export interface IScenarioOutcome {
 /**
  * Main Scenario document interface.
  */
-export interface IScenario extends Document {
+export interface IScenario {
     simulationId: Types.ObjectId;
     userId: Types.ObjectId;
     name: string;
