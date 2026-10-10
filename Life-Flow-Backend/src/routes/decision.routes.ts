@@ -1,31 +1,52 @@
 
-import { Router, type Response, type NextFunction } from "express";
+import {
+    Router,
+    type Request,
+    type Response,
+    type NextFunction,
+} from "express";
 import mongoose from "mongoose";
 
 import Decision from "../models/Decision";
+import { authMiddleware } from "../middleware/auth.middleware";
 import {
     createDecisionSchema,
     updateDecisionSchema,
 } from "../validators/decision.validator";
-import {
-    authMiddleware,
-    type AuthenticatedRequest,
-} from "../middleware/auth.middleware";
 
 const router = Router();
 
-// All decision endpoints require authentication.
+interface AuthenticatedRequest extends Request {
+    user?: {
+        userId: string;
+    };
+}
+
+const getUserId = (req: Request): string | undefined => {
+    return (req as AuthenticatedRequest).user?.userId;
+};
+
+const getStringParam = (value: unknown): string | undefined => {
+    return typeof value === "string" ? value : undefined;
+};
+
 router.use(authMiddleware);
 
 // POST /api/decisions
 router.post(
     "/",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            const userId = getUserId(req);
+
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    message: "Authentication required.",
+                });
+                return;
+            }
+
             const validation = createDecisionSchema.safeParse(req.body);
 
             if (!validation.success) {
@@ -39,7 +60,7 @@ router.post(
 
             const decision = await Decision.create({
                 ...validation.data,
-                userId: req.user.userId,
+                userId,
             });
 
             res.status(201).json({
@@ -56,15 +77,21 @@ router.post(
 // GET /api/decisions
 router.get(
     "/",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const decisions = await Decision.find({
-                userId: req.user.userId,
-            }).sort({ createdAt: -1 });
+            const userId = getUserId(req);
+
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    message: "Authentication required.",
+                });
+                return;
+            }
+
+            const decisions = await Decision.find({ userId }).sort({
+                createdAt: -1,
+            });
 
             res.status(200).json({
                 success: true,
@@ -80,15 +107,20 @@ router.get(
 // GET /api/decisions/:id
 router.get(
     "/:id",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params;
+            const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
-            if (!mongoose.isValidObjectId(id)) {
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    message: "Authentication required.",
+                });
+                return;
+            }
+
+            if (!id || !mongoose.isValidObjectId(id)) {
                 res.status(400).json({
                     success: false,
                     message: "Invalid decision ID.",
@@ -96,10 +128,7 @@ router.get(
                 return;
             }
 
-            const decision = await Decision.findOne({
-                _id: id,
-                userId: req.user.userId,
-            });
+            const decision = await Decision.findOne({ _id: id, userId });
 
             if (!decision) {
                 res.status(404).json({
@@ -123,15 +152,20 @@ router.get(
 // PATCH /api/decisions/:id
 router.patch(
     "/:id",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params;
+            const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
-            if (!mongoose.isValidObjectId(id)) {
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    message: "Authentication required.",
+                });
+                return;
+            }
+
+            if (!id || !mongoose.isValidObjectId(id)) {
                 res.status(400).json({
                     success: false,
                     message: "Invalid decision ID.",
@@ -151,15 +185,9 @@ router.patch(
             }
 
             const decision = await Decision.findOneAndUpdate(
-                {
-                    _id: id,
-                    userId: req.user.userId,
-                },
+                { _id: id, userId },
                 { $set: validation.data },
-                {
-                    new: true,
-                    runValidators: true,
-                }
+                { new: true, runValidators: true }
             );
 
             if (!decision) {
@@ -184,15 +212,20 @@ router.patch(
 // DELETE /api/decisions/:id
 router.delete(
     "/:id",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params;
+            const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
-            if (!mongoose.isValidObjectId(id)) {
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    message: "Authentication required.",
+                });
+                return;
+            }
+
+            if (!id || !mongoose.isValidObjectId(id)) {
                 res.status(400).json({
                     success: false,
                     message: "Invalid decision ID.",
@@ -202,7 +235,7 @@ router.delete(
 
             const decision = await Decision.findOneAndDelete({
                 _id: id,
-                userId: req.user.userId,
+                userId,
             });
 
             if (!decision) {

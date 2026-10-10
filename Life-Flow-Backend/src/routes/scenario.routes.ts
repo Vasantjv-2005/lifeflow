@@ -1,5 +1,10 @@
 
-import { Router, type Request, type Response, type NextFunction } from "express";
+import {
+    Router,
+    type Request,
+    type Response,
+    type NextFunction,
+} from "express";
 
 import { authMiddleware } from "../middleware/auth.middleware";
 import {
@@ -12,17 +17,20 @@ import {
 
 const router = Router();
 
-type AuthenticatedUserRequest = Request & {
+interface AuthenticatedRequest extends Request {
     user?: {
         userId: string;
     };
-};
+}
 
 const getUserId = (req: Request): string | undefined => {
-    return (req as AuthenticatedUserRequest).user?.userId;
+    return (req as AuthenticatedRequest).user?.userId;
 };
 
-// All scenario endpoints require authentication.
+const getStringParam = (value: unknown): string | undefined => {
+    return typeof value === "string" ? value : undefined;
+};
+
 router.use(authMiddleware);
 
 // POST /api/scenarios
@@ -54,12 +62,12 @@ router.post(
 );
 
 // GET /api/scenarios/simulation/:simulationId
-// Keep this route before /:id to avoid route conflicts.
 router.get(
     "/simulation/:simulationId",
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getUserId(req);
+            const simulationId = getStringParam(req.params.simulationId);
 
             if (!userId) {
                 res.status(401).json({
@@ -69,10 +77,15 @@ router.get(
                 return;
             }
 
-            const scenarios = await getScenariosBySimulation(
-                userId,
-                req.params.simulationId
-            );
+            if (!simulationId) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid simulation ID.",
+                });
+                return;
+            }
+
+            const scenarios = await getScenariosBySimulation(userId, simulationId);
 
             res.status(200).json({
                 success: true,
@@ -91,6 +104,7 @@ router.get(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
             if (!userId) {
                 res.status(401).json({
@@ -100,7 +114,15 @@ router.get(
                 return;
             }
 
-            const scenario = await getScenarioById(userId, req.params.id);
+            if (!id) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid scenario ID.",
+                });
+                return;
+            }
+
+            const scenario = await getScenarioById(userId, id);
 
             res.status(200).json({
                 success: true,
@@ -119,6 +141,7 @@ router.patch(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
             if (!userId) {
                 res.status(401).json({
@@ -128,11 +151,15 @@ router.patch(
                 return;
             }
 
-            const scenario = await updateScenario(
-                userId,
-                req.params.id,
-                req.body
-            );
+            if (!id) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid scenario ID.",
+                });
+                return;
+            }
+
+            const scenario = await updateScenario(userId, id, req.body);
 
             res.status(200).json({
                 success: true,
@@ -151,6 +178,7 @@ router.delete(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getUserId(req);
+            const id = getStringParam(req.params.id);
 
             if (!userId) {
                 res.status(401).json({
@@ -160,7 +188,15 @@ router.delete(
                 return;
             }
 
-            await deleteScenario(userId, req.params.id);
+            if (!id) {
+                res.status(400).json({
+                    success: false,
+                    message: "Invalid scenario ID.",
+                });
+                return;
+            }
+
+            await deleteScenario(userId, id);
 
             res.status(200).json({
                 success: true,
