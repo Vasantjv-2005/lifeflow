@@ -43,7 +43,12 @@ export const authMiddleware = (
     next: NextFunction
 ): void => {
     try {
-        const token = req.cookies?.accessToken;
+        const bearerHeader = req.headers.authorization;
+        const bearerToken =
+            bearerHeader && bearerHeader.startsWith("Bearer ")
+                ? bearerHeader.substring(7).trim()
+                : undefined;
+        const token = req.cookies?.accessToken || bearerToken;
 
         if (!token) {
             res.status(401).json({

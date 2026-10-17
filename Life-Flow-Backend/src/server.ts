@@ -1,17 +1,45 @@
+
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+
 import connectDB from "./config/db";
+
+import authRoutes from "./routes/auth.routes";
+import userRoutes from "./routes/user.routes";
+import decisionRoutes from "./routes/decision.routes";
+import scenarioRoutes from "./routes/scenario.routes";
+import simulationRoutes from "./routes/simulation.routes";
+import aiRoutes from "./routes/ai.routes";
+
+import { notFoundMiddleware } from "./middleware/notFound.middleware";
+import { errorMiddleware } from "./middleware/error.middleware";
 
 dotenv.config();
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
-// Middleware
-app.use(express.json());
+// Security middleware
+app.use(helmet());
 
-// Health check route
+// CORS configuration
+app.use(
+    cors({
+        origin: CLIENT_URL,
+        credentials: true,
+    })
+);
+
+// Request parsing middleware
+app.use(express.json({ limit: "1mb" }));
+app.use(cookieParser());
+
+// Health check
 app.get("/", (_req, res) => {
     res.status(200).json({
         success: true,
@@ -19,20 +47,31 @@ app.get("/", (_req, res) => {
     });
 });
 
-// Start server
+// API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/decisions", decisionRoutes);
+app.use("/api/scenarios", scenarioRoutes);
+app.use("/api/simulations", simulationRoutes);
+app.use("/api/ai", aiRoutes);
+
+// Not-found and error middleware must come after all routes.
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
+
+// Start server after MongoDB connects successfully.
 const startServer = async (): Promise<void> => {
     try {
-        // Connect to MongoDB
         await connectDB();
 
-        // Start Express server
         app.listen(PORT, () => {
-            console.log(`Server running on http://localhost:${PORT}`);
+            console.log(`LifeFlow Backend running at http://localhost:${PORT}`);
+            console.log(`Allowed frontend origin: ${CLIENT_URL}`);
         });
-    } catch (error) {
-        console.error("Failed to start server:", error);
+    } catch (error: unknown) {
+        console.error("Failed to start LifeFlow Backend:", error);
         process.exit(1);
     }
 };
 
-startServer();
+void startServer();
