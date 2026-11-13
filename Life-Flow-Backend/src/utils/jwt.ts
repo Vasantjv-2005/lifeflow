@@ -1,5 +1,6 @@
 
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import { env } from "../config/env";
 
 /**
  * Represents the payload stored inside a LifeFlow JWT.
@@ -9,17 +10,10 @@ export interface AuthTokenPayload extends JwtPayload {
 }
 
 /**
- * Reads and validates the JWT secret from environment variables.
- * Throws an error if the secret is missing.
+ * Reads and validates the JWT secret from configuration.
  */
 const getJwtSecret = (): string => {
-    const secret = process.env.JWT_SECRET;
-
-    if (!secret || secret.trim().length === 0) {
-        throw new Error("JWT_SECRET is missing from environment variables.");
-    }
-
-    return secret;
+    return env.JWT_SECRET;
 };
 
 /**
@@ -36,7 +30,7 @@ export const generateToken = (userId: string): string => {
     const secret = getJwtSecret();
 
     const options: SignOptions = {
-        expiresIn: "7d",
+        expiresIn: (env.JWT_EXPIRES_IN || "7d") as unknown as SignOptions["expiresIn"],
         issuer: "lifeflow-api",
         subject: userId,
     };

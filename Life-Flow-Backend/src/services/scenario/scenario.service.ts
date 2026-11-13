@@ -104,6 +104,38 @@ export const createScenario = async (
 };
 
 /**
+ * Creates multiple scenarios in batch for a given simulation.
+ */
+export const createBatchScenarios = async (
+    userId: string,
+    simulationId: string,
+    scenarios: unknown[]
+) => {
+    validateObjectId(userId, "authenticated user ID");
+    validateObjectId(simulationId, "simulation ID");
+
+    if (!Array.isArray(scenarios) || scenarios.length === 0) {
+        throw new AppError("A non-empty array of scenarios is required.", 400);
+    }
+
+    await ensureSimulationOwnership(simulationId, userId);
+
+    const docsToInsert = scenarios.map((item) => {
+        const validated = validateScenarioInput(
+            { ...(item as Record<string, unknown>), simulationId },
+            "create"
+        );
+        return {
+            ...validated,
+            simulationId,
+            userId,
+        };
+    });
+
+    return Scenario.insertMany(docsToInsert);
+};
+
+/**
  * Lists scenarios belonging to a simulation owned by the user.
  */
 export const getScenariosBySimulation = async (

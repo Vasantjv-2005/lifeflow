@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { env } from "../config/env";
 
 /**
  * Represents the information stored inside our JWT.
@@ -58,17 +59,7 @@ export const authMiddleware = (
             return;
         }
 
-        const jwtSecret = process.env.JWT_SECRET;
-
-        if (!jwtSecret) {
-            console.error("JWT_SECRET is not configured.");
-
-            res.status(500).json({
-                success: false,
-                message: "Server authentication configuration is missing.",
-            });
-            return;
-        }
+        const jwtSecret = env.JWT_SECRET;
 
         const decoded = jwt.verify(token, jwtSecret);
 

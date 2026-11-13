@@ -61,7 +61,7 @@ const scenarioStepSchema = new Schema<IScenarioStep>(
             type: String,
             required: [true, "Step description is required"],
             trim: true,
-            maxlength: [1000, "Step description cannot exceed 1000 characters"],
+            maxlength: [3000, "Step description cannot exceed 3000 characters"],
         },
 
         timeframe: {
@@ -92,7 +92,7 @@ const scenarioOutcomeSchema = new Schema<IScenarioOutcome>(
             type: String,
             required: [true, "Outcome description is required"],
             trim: true,
-            maxlength: [1000, "Outcome description cannot exceed 1000 characters"],
+            maxlength: [3000, "Outcome description cannot exceed 3000 characters"],
         },
 
         probability: {
@@ -145,7 +145,7 @@ const scenarioSchema = new Schema<IScenario>(
         description: {
             type: String,
             trim: true,
-            maxlength: [1000, "Scenario description cannot exceed 1000 characters"],
+            maxlength: [3000, "Scenario description cannot exceed 3000 characters"],
         },
 
         type: {
@@ -197,6 +197,20 @@ const scenarioSchema = new Schema<IScenario>(
     {
         timestamps: true,
         versionKey: false,
+        toJSON: {
+            virtuals: true,
+            transform: (_doc, ret: Record<string, unknown>) => {
+                if (ret._id) ret.id = ret._id.toString();
+                return ret;
+            },
+        },
+        toObject: {
+            virtuals: true,
+            transform: (_doc, ret: Record<string, unknown>) => {
+                if (ret._id) ret.id = ret._id.toString();
+                return ret;
+            },
+        },
     }
 );
 

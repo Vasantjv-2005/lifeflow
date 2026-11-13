@@ -1,5 +1,6 @@
 
 import mongoose from "mongoose";
+import { env } from "./env";
 
 /**
  * Collections required by the LifeFlow backend.
@@ -22,7 +23,7 @@ const REQUIRED_COLLECTIONS = [
  */
 const connectDB = async (): Promise<void> => {
     try {
-        const mongoURI = process.env.MONGODB_URI;
+        const mongoURI = env.MONGODB_URI;
 
         if (!mongoURI) {
             throw new Error(

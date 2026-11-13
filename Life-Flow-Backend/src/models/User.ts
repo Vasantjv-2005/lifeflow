@@ -41,6 +41,22 @@ const userSchema = new Schema<IUser>(
     {
         timestamps: true,
         versionKey: false,
+        toJSON: {
+            virtuals: true,
+            transform: (_doc, ret: Record<string, unknown>) => {
+                if (ret._id) ret.id = ret._id.toString();
+                delete ret.password;
+                return ret;
+            },
+        },
+        toObject: {
+            virtuals: true,
+            transform: (_doc, ret: Record<string, unknown>) => {
+                if (ret._id) ret.id = ret._id.toString();
+                delete ret.password;
+                return ret;
+            },
+        },
     }
 );
 

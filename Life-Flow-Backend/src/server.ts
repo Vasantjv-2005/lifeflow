@@ -1,10 +1,10 @@
 
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
+import { env } from "./config/env";
 import connectDB from "./config/db";
 
 import authRoutes from "./routes/auth.routes";
@@ -17,12 +17,10 @@ import aiRoutes from "./routes/ai.routes";
 import { notFoundMiddleware } from "./middleware/notFound.middleware";
 import { errorMiddleware } from "./middleware/error.middleware";
 
-dotenv.config();
-
 const app = express();
 
-const PORT = Number(process.env.PORT) || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const PORT = env.PORT;
+const CLIENT_URL = env.CLIENT_URL;
 
 // Security middleware
 app.use(helmet());

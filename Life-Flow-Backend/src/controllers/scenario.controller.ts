@@ -7,6 +7,7 @@ import {
 
 import {
     createScenario as createScenarioService,
+    createBatchScenarios as createBatchScenariosService,
     getScenariosBySimulation,
     getScenarioById,
     updateScenario as updateScenarioService,
@@ -50,6 +51,49 @@ export const createScenario = async (
             success: true,
             message: "Scenario created successfully.",
             data: { scenario },
+        });
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// POST /api/scenarios/batch
+export const createBatchScenarios = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const userId = getUserId(req);
+
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                message: "Authentication required.",
+            });
+            return;
+        }
+
+        const { simulationId, scenarios } = req.body;
+
+        if (!simulationId) {
+            res.status(400).json({
+                success: false,
+                message: "simulationId is required for batch creation.",
+            });
+            return;
+        }
+
+        const createdScenarios = await createBatchScenariosService(
+            userId,
+            simulationId,
+            scenarios
+        );
+
+        res.status(201).json({
+            success: true,
+            message: "Scenarios created in batch successfully.",
+            data: { scenarios: createdScenarios },
         });
     } catch (error: unknown) {
         next(error);

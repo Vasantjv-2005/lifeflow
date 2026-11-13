@@ -97,13 +97,25 @@ export const createDecisionSchema = z.object({
         .optional(),
 
     timeAvailable: z
-        .number()
-        .min(0, "Time available cannot be negative")
+        .preprocess((val) => {
+            if (val === "" || val === undefined || val === null) return undefined;
+            if (typeof val === "string") {
+                const parsed = Number(val.replace(/[^0-9.-]+/g, ""));
+                return isNaN(parsed) ? undefined : parsed;
+            }
+            return val;
+        }, z.number().min(0, "Time available cannot be negative").optional())
         .optional(),
 
     budget: z
-        .number()
-        .min(0, "Budget cannot be negative")
+        .preprocess((val) => {
+            if (val === "" || val === undefined || val === null) return undefined;
+            if (typeof val === "string") {
+                const parsed = Number(val.replace(/[^0-9.-]+/g, ""));
+                return isNaN(parsed) ? undefined : parsed;
+            }
+            return val;
+        }, z.number().min(0, "Budget cannot be negative").optional())
         .optional(),
 
     factors: z

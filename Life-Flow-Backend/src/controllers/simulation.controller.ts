@@ -1,4 +1,3 @@
-
 import {
     type Request,
     type Response,
@@ -11,6 +10,8 @@ import {
     getSimulationById,
     updateSimulation as updateSimulationService,
     deleteSimulation as deleteSimulationService,
+    executeSimulation as executeSimulationService,
+    runAdHocSimulation as runAdHocSimulationService,
 } from "../services/simulation/simulation.service";
 
 interface AuthenticatedRequest extends Request {
@@ -196,6 +197,85 @@ export const deleteSimulation = async (
         res.status(200).json({
             success: true,
             message: "Simulation deleted successfully.",
+        });
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// POST /api/simulations/:id/run
+export const runSimulationById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const userId = getUserId(req);
+        const id = getStringParam(req.params.id);
+
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                message: "Authentication required.",
+            });
+            return;
+        }
+
+        if (!id) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid simulation ID.",
+            });
+            return;
+        }
+
+        const options = {
+            maxPaths: req.body?.maxPaths ? Number(req.body.maxPaths) : undefined,
+            maxDepth: req.body?.maxDepth ? Number(req.body.maxDepth) : undefined,
+        };
+
+        const result = await executeSimulationService(userId, id, options);
+
+        res.status(200).json({
+            success: true,
+            message: "Simulation executed successfully.",
+            data: result,
+        });
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// POST /api/simulations/run
+export const runSimulationAdHoc = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const userId = getUserId(req);
+
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                message: "Authentication required.",
+            });
+            return;
+        }
+
+        const { nodes, edges, maxPaths, maxDepth } = req.body;
+
+        const options = {
+            maxPaths: maxPaths ? Number(maxPaths) : undefined,
+            maxDepth: maxDepth ? Number(maxDepth) : undefined,
+        };
+
+        const result = runAdHocSimulationService({ nodes, edges }, options);
+
+        res.status(200).json({
+            success: true,
+            message: "Ad-hoc simulation executed successfully.",
+            data: result,
         });
     } catch (error: unknown) {
         next(error);

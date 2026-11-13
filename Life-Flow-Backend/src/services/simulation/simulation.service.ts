@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 import Simulation from "../../models/Simulation";
@@ -8,6 +7,12 @@ import {
 } from "../../validators/simulation.validator";
 import { AppError } from "../../middleware/error.middleware";
 import type { ISimulation } from "../../models/Simulation";
+import {
+    runSimulation,
+    type SimulationEngineOptions,
+    type SimulationEngineResult,
+} from "./simulation.engine";
+import type { SimulationNode, SimulationEdge } from "../../types/simulation.types";
 
 /**
  * Converts validation failures into client-friendly application errors.
@@ -153,5 +158,86 @@ export const deleteSimulation = async (
 
     if (!simulation) {
         throw new AppError("Simulation not found.", 404);
+    }
+};
+
+/**
+ * Executes graph traversal and path discovery on an existing saved simulation.
+ */
+export const executeSimulation = async (
+    userId: string,
+    simulationId: string,
+    options?: SimulationEngineOptions
+): Promise<SimulationEngineResult> => {
+    validateSimulationId(simulationId);
+
+    const simulation = await Simulation.findOne({
+        _id: simulationId,
+        userId,
+    }).lean().exec();
+
+    if (!simulation) {
+        throw new AppError("Simulation not found.", 404);
+    }
+
+    if (!simulation.nodes || simulation.nodes.length === 0) {
+        throw new AppError(
+            "Simulation contains no nodes. Please add nodes before running the simulation.",
+            400
+        );
+    }
+
+    try {
+        const nodes: SimulationNode[] = simulation.nodes.map((node) => ({
+            nodeId: node.nodeId,
+            type: node.type,
+            title: node.title,
+            description: node.description,
+            position: node.position,
+        }));
+
+        const edges: SimulationEdge[] = (simulation.edges || []).map((edge) => ({
+            edgeId: edge.edgeId,
+            source: edge.source,
+            target: edge.target,
+            label: edge.label,
+            condition: edge.condition,
+        }));
+
+        return runSimulation({ nodes, edges }, options);
+    } catch (engineError: unknown) {
+        const message =
+            engineError instanceof Error
+                ? engineError.message
+                : "Simulation evaluation failed.";
+        throw new AppError(message, 400);
+    }
+};
+
+/**
+ * Executes graph traversal on raw nodes and edges without requiring persistence.
+ */
+export const runAdHocSimulation = (
+    input: { nodes: SimulationNode[]; edges: SimulationEdge[] },
+    options?: SimulationEngineOptions
+): SimulationEngineResult => {
+    if (!input || !Array.isArray(input.nodes) || input.nodes.length === 0) {
+        throw new AppError("A simulation requires a non-empty nodes array.", 400);
+    }
+
+    try {
+        return runSimulation(
+            {
+                nodes: input.nodes,
+                edges: input.edges || [],
+            },
+            options
+        );
+    } catch (engineError: unknown) {
+        const message =
+            engineError instanceof Error
+                ? engineError.message
+                : "Simulation evaluation failed.";
+        throw new AppError(message, 400);
     }
 };

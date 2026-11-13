@@ -1,55 +1,28 @@
-
-import {
-    Router,
-    type Request,
-    type Response,
-    type NextFunction,
-} from "express";
+import { Router } from "express";
 
 import { authMiddleware } from "../middleware/auth.middleware";
-import { getUserProfile } from "../services/auth/auth.service";
+import {
+    getProfile,
+    updateProfile,
+    changePassword,
+    deleteAccount,
+} from "../controllers/user.controller";
 
 const router = Router();
 
-interface AuthenticatedRequest extends Request {
-    user?: {
-        userId: string;
-    };
-}
-
-// All user profile routes require authentication.
+// All user routes require authentication.
 router.use(authMiddleware);
 
-// GET /api/users/me
-router.get(
-    "/me",
-    async (
-        req: AuthenticatedRequest,
-        res: Response,
-        next: NextFunction
-    ): Promise<void> => {
-        try {
-            const userId = req.user?.userId;
+// GET /api/users/me - Get current user profile
+router.get("/me", getProfile);
 
-            if (!userId) {
-                res.status(401).json({
-                    success: false,
-                    message: "Authentication required.",
-                });
-                return;
-            }
+// PATCH /api/users/me - Update user profile
+router.patch("/me", updateProfile);
 
-            const user = await getUserProfile(userId);
+// PATCH /api/users/me/password - Change user password
+router.patch("/me/password", changePassword);
 
-            res.status(200).json({
-                success: true,
-                message: "User profile retrieved successfully.",
-                data: { user },
-            });
-        } catch (error: unknown) {
-            next(error);
-        }
-    }
-);
+// DELETE /api/users/me - Delete user account and cascade delete their data
+router.delete("/me", deleteAccount);
 
 export default router;

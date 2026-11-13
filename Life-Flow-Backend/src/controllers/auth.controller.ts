@@ -1,23 +1,30 @@
-
 import type { Request, Response, NextFunction } from "express";
 
+import { env } from "../config/env";
 import {
     registerUser,
     loginUser,
+    getUserProfile,
 } from "../services/auth/auth.service";
 
 const COOKIE_NAME = "accessToken";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = env.NODE_ENV === "production";
 
 const cookieOptions = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax" as const,
+    sameSite: isProduction ? ("none" as const) : ("lax" as const),
     path: "/",
     maxAge: COOKIE_MAX_AGE,
 };
+
+interface AuthenticatedRequest extends Request {
+    user?: {
+        userId: string;
+    };
+}
 
 // POST /api/auth/register
 export const register = async (
@@ -35,6 +42,7 @@ export const register = async (
             message: "Account created successfully.",
             data: {
                 user: result.user,
+                token: result.token,
             },
         });
     } catch (error: unknown) {
@@ -58,6 +66,7 @@ export const login = async (
             message: "Login successful.",
             data: {
                 user: result.user,
+                token: result.token,
             },
         });
     } catch (error: unknown) {
@@ -73,7 +82,7 @@ export const logout = (
     res.clearCookie(COOKIE_NAME, {
         httpOnly: true,
         secure: isProduction,
-        sameSite: "lax",
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
     });
 
@@ -81,4 +90,33 @@ export const logout = (
         success: true,
         message: "Logged out successfully.",
     });
+};
+
+// GET /api/auth/me
+export const getCurrentUser = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.userId;
+
+        if (!userId) {
+            res.status(401).json({
+                success: false,
+                message: "Authentication required.",
+            });
+            return;
+        }
+
+        const user = await getUserProfile(userId);
+
+        res.status(200).json({
+            success: true,
+            message: "User profile retrieved successfully.",
+            data: { user },
+        });
+    } catch (error: unknown) {
+        next(error);
+    }
 };
