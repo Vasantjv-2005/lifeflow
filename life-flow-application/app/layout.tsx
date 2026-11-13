@@ -6,9 +6,13 @@ import { Providers } from './providers'
 export const metadata: Metadata = {
   title: 'LifeFlow — Make room for possibility',
   description: 'A thoughtful space to explore life decisions, map your options, and find a little more clarity.',
-  generator: 'v0.app',
+  generator: 'LifeFlow',
   icons: {
     icon: [
+      {
+        url: '/logo.png',
+        type: 'image/png',
+      },
       {
         url: '/icon-light-32x32.png',
         media: '(prefers-color-scheme: light)',
@@ -23,6 +27,7 @@ export const metadata: Metadata = {
       },
     ],
     apple: '/apple-icon.png',
+    shortcut: '/logo.png',
   },
 }
 

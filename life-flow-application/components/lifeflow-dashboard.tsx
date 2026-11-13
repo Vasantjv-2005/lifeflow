@@ -63,9 +63,11 @@ function SideNav({ onNavigate, decisionsCount }: { onNavigate?: () => void; deci
   return (
     <>
       <Link href="/dashboard" className="brand" onClick={onNavigate}>
-        <span className="brand-icon">
-          <Activity size={19} strokeWidth={2.3} />
-        </span>
+        <img
+          src="/logo.png"
+          alt="LifeFlow Logo"
+          style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover" }}
+        />
         <span>
           life<span className="brand-light">flow</span>
         </span>

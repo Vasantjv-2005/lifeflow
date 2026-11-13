@@ -179,9 +179,11 @@ export function LandingPage() {
       <header className="home-nav-container">
         <div className="home-nav">
           <Link href="/" className="home-nav-brand">
-            <div className="brand-icon" style={{ width: 30, height: 30, borderRadius: 8 }}>
-              <Activity size={18} />
-            </div>
+            <img
+              src="/logo.png"
+              alt="LifeFlow Logo"
+              style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover", boxShadow: "0 2px 10px rgba(0,0,0,0.3)" }}
+            />
             <span>life</span>flow
           </Link>
 
@@ -275,6 +277,11 @@ export function LandingPage() {
               <span className="dot dot-green" />
             </div>
 
+            <div className="browser-tab-pill">
+              <img src="/logo.png" alt="LifeFlow Logo" className="browser-tab-logo" />
+              <span className="browser-tab-name">LifeFlow — Decision Studio</span>
+            </div>
+
             <div className="browser-url-bar">
               <Lock size={12} />
               <span>lifeflow.app</span>/workspace/decisions/career-pivot-ai
@@ -291,9 +298,11 @@ export function LandingPage() {
             {/* LEFT MOCKUP SIDEBAR */}
             <aside className="mockup-sidebar">
               <div className="mockup-brand">
-                <div className="brand-icon" style={{ width: 22, height: 22, borderRadius: 6 }}>
-                  <Activity size={13} />
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="LifeFlow Logo"
+                  style={{ width: 24, height: 24, borderRadius: 6, objectFit: "cover" }}
+                />
                 <span>lifeflow</span>
               </div>
 
@@ -671,9 +680,11 @@ export function LandingPage() {
             {/* Left Brand Column */}
             <div className="footer-brand-col">
               <div className="footer-brand-header">
-                <div className="footer-brand-icon">
-                  <Activity size={16} />
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="LifeFlow Logo"
+                  style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover" }}
+                />
                 <span className="footer-brand-name">LifeFlow</span>
               </div>
               <p className="footer-brand-desc">

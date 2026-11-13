@@ -58,9 +58,11 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   return (
     <main className="auth-screen">
       <Link href="/dashboard" className="brand auth-brand">
-        <span className="brand-icon">
-          <Activity size={19} />
-        </span>
+        <img
+          src="/logo.png"
+          alt="LifeFlow Logo"
+          style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover" }}
+        />
         <span>
           life<span className="brand-light">flow</span>
         </span>
