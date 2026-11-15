@@ -108,7 +108,18 @@ function SideNav({ onNavigate, decisionsCount }: { onNavigate?: () => void; deci
           <span>Product showcase</span>
         </Link>
         <div className="profile-row">
-          <div className="avatar" suppressHydrationWarning>{initial}</div>
+          <div className="avatar" suppressHydrationWarning style={{ overflow: "hidden" }}>
+            {user?.profilePicture ? (
+              <img
+                src={user.profilePicture}
+                alt={user.name || "User"}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              initial
+            )}
+          </div>
           <div className="profile-copy">
             <strong suppressHydrationWarning>{user?.name || "LifeFlow User"}</strong>
             <span suppressHydrationWarning>{user?.email || "Personal workspace"}</span>
@@ -180,8 +191,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <Bell size={18} />
               <i />
             </button>
-            <Link href="/settings" className="avatar top-avatar" suppressHydrationWarning>
-              {initial}
+            <Link href="/settings" className="avatar top-avatar" suppressHydrationWarning style={{ overflow: "hidden" }}>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt={user.name || "User"}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                initial
+              )}
             </Link>
           </div>
         </header>

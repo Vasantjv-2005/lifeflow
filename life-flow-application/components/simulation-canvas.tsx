@@ -144,8 +144,203 @@ export interface DomainRoadmapConfig {
   }
 }
 
-export function getDomainRoadmapData(title: string, goal?: string): DomainRoadmapConfig {
-  const q = `${title} ${goal || ""}`.toLowerCase()
+export function getDomainRoadmapData(title: string, goal?: string, category?: string): DomainRoadmapConfig {
+  const q = `${title} ${goal || ""} ${category || ""}`.toLowerCase()
+  const cat = (category || "").toLowerCase()
+
+  // 0A. RELATIONSHIPS & INTERPERSONAL DYNAMICS
+  if (/(relationship|relationships|partner|marriage|dating|couple|family|spouse|friendship|co-living|relocate together)/i.test(q) || cat.includes("relationship")) {
+    return {
+      jobKeywords: "",
+      guideHeading: "Relationship Harmony & Shared Living Playbook",
+      courses: [
+        {
+          title: "The Seven Principles for Making Marriage Work",
+          provider: "The Gottman Institute",
+          url: "https://www.gottman.com/",
+          badge: "Clinical Standard",
+        },
+        {
+          title: "Nonviolent Communication (NVC) Framework",
+          provider: "CNVC Organization",
+          url: "https://www.cnvc.org/",
+          badge: "Communication",
+        },
+        {
+          title: "Crucial Conversations for Couples",
+          provider: "Crucial Learning",
+          url: "https://cruciallearning.com/",
+          badge: "Conflict Resolution",
+        },
+        {
+          title: "Adult Attachment Theory & Dynamics",
+          provider: "Attachment Project",
+          url: "https://www.attachmentproject.com/",
+          badge: "Relational Safety",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Deep Values, Needs & Communication Alignment",
+        desc: "Facilitate open dialogues on core personal values, future horizons, and emotional needs using NVC and Gottman active listening.",
+      },
+      coursesTrack: {
+        title: "Curated Relationship Guides & Frameworks",
+        desc: "The Gottman Institute, Nonviolent Communication (Marshall Rosenberg), Crucial Conversations, and Attachment Theory.",
+      },
+      phase2: {
+        title: "Phase 2: Transparent Financial & Living Logistics Blueprint",
+        desc: "Establish clear shared vs individual expenses, joint savings, personal space requirements, household chores, and work boundaries.",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Relational Dynamics & Weekly State of the Union",
+        desc: "Implement weekly 20-minute check-ins using the 5:1 positive-to-negative ratio and agreed de-escalation protocols.",
+      },
+      phase4: {
+        title: "Phase 4: Co-Living Trial Milestones & Adaptation",
+        desc: "Test co-living or shared decision-making during trips or mini-trials with continuous empathy and honest feedback.",
+      },
+      phase5: {
+        title: "Phase 5: Seamless Relocation / Harmonious Transition",
+        desc: "Execute long-term living plans smoothly with balanced independence, shared traditions, and celebration rituals.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Flourishing Partnership & Deep Trust",
+          desc: "Full emotional safety, shared life trajectory, and high compatibility across living and financial dimensions.",
+        },
+        realistic: {
+          title: "Realistic: Balanced Step-by-Step Transition",
+          desc: "Gradual logistical adaptation preserving individual independence while deepening mutual partnership.",
+        },
+        conservative: {
+          title: "Conservative: Protected Autonomy & Clarified Compatibility",
+          desc: "Independent emergency reserves maintained with honest evaluation of true long-term suitability.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Nonviolent Communication (NVC):</strong> 4-Step expression: Objective Observations, Authentic Feelings, Core Needs, and Actionable Requests.",
+          "<strong>Gottman Method Antidotes:</strong> Replace Criticism with Gentle Start-up, Defensiveness with Responsibility, Contempt with Appreciation, and Stonewalling with Self-Soothing.",
+          "<strong>Financial Transparency Blueprint:</strong> Joint operational account for shared overhead + separate individual discretionary accounts.",
+          "<strong>Healthy Boundary Protocol:</strong> Preserving personal time, individual friendships, and separate quiet workspaces.",
+        ],
+        resumeRules: [
+          "<strong>Shared Values Matrix:</strong> Align on children, finances, career sacrifices, geographic preferences, and family boundaries before cohabitating.",
+          "<strong>The 5:1 Positivity Ratio:</strong> Maintain at least five positive interactions (appreciation, humor, touch) for every single critical interaction.",
+          "<strong>Emotional Bank Account:</strong> Turn toward your partner's bids for connection (conversation, glances, shared meals) rather than turning away.",
+        ],
+        interviewQuestions: [
+          {
+            q: "How will we handle financial discrepancies or career sacrifices?",
+            a: "Establish an equitable contributing ratio (e.g. proportional to income or equal baseline) and agree on how career relocations are mutually decided.",
+          },
+          {
+            q: "What is our protocol when disagreements become emotionally heated?",
+            a: "Agree on a designated 20-minute 'time-out' pause when pulse rates elevate, with a firm commitment to reconvene calmly to repair.",
+          },
+          {
+            q: "How do we protect individual autonomy and personal space when living together?",
+            a: "Define designated private zones or solo time blocks each week where each partner can recharge without obligation.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 0B. HEALTH & WELLBEING
+  if (/(health|fitness|wellness|wellbeing|weight|nutrition|workout|mental health|sleep|diet|exercise|therapy)/i.test(q) || cat.includes("health") || cat.includes("wellbeing")) {
+    return {
+      jobKeywords: "",
+      guideHeading: "Health, Vitality & Wellness Protocol Playbook",
+      courses: [
+        {
+          title: "Foundational Health & Sleep Toolkits",
+          provider: "Huberman Lab",
+          url: "https://www.hubermanlab.com/",
+          badge: "Neurobiology",
+        },
+        {
+          title: "Metabolic Nutrition & Habit Science",
+          provider: "Precision Nutrition",
+          url: "https://www.precisionnutrition.com/",
+          badge: "Evidence-Based",
+        },
+        {
+          title: "Resistance Training & Hypertrophy",
+          provider: "Stronger by Science",
+          url: "https://www.strongerbyscience.com/",
+          badge: "Exercise Science",
+        },
+        {
+          title: "Mindfulness-Based Stress Reduction",
+          provider: "Palouse Mindfulness",
+          url: "https://palousemindfulness.com/",
+          badge: "MBSR Standard",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Baseline Health Audit & Nutrition Structure",
+        desc: "Complete metabolic blood panel, determine caloric needs and protein targets (1.6g/kg), prioritize whole unprocessed foods, and daily 2.5L water.",
+      },
+      coursesTrack: {
+        title: "Curated Scientific Health & Fitness Resources",
+        desc: "Huberman Lab sleep toolkits, Precision Nutrition, Stronger by Science, and evidence-based clinical physiology.",
+      },
+      phase2: {
+        title: "Phase 2: Progressive Resistance & Zone 2 Cardio",
+        desc: "3-4 weekly hypertrophy/strength training sessions with tracked progressive overload + 120 minutes of weekly Zone 2 aerobic base.",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Circadian Light & Sleep Architecture",
+        desc: "Morning outdoor sunlight within 30 min of waking, consistent sleep schedule, and 60-min pre-bed blue light elimination.",
+      },
+      phase4: {
+        title: "Phase 4: Stress Recovery & Biomarker Calibration",
+        desc: "Track resting heart rate and HRV, incorporate daily deliberate decompression or mindfulness, and evaluate physical improvements.",
+      },
+      phase5: {
+        title: "Phase 5: Sustainable Lifelong Habit Integration",
+        desc: "Automate routines to ensure lifelong adherence without burnout or extreme deprivation.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Peak Metabolic Vitality & Energy",
+          desc: "Transformed body composition, normalized biomarkers, high cognitive clarity, and sustained daily stamina.",
+        },
+        realistic: {
+          title: "Realistic: Sustainable Daily Healthy Lifestyle",
+          desc: "Consistent 3-4x weekly workouts, balanced home meals, and reliable restorative sleep habits.",
+        },
+        conservative: {
+          title: "Conservative: Restored Baseline & Injury Prevention",
+          desc: "Gradual movement, safe mobility restoration, and injury-free progression.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Progressive Overload:</strong> Adding small increments of load, reps, or volume weekly while maintaining strict form.",
+          "<strong>Protein Pacing:</strong> 1.6-2.2 grams of protein per kilogram of bodyweight distributed across 3-4 meals.",
+          "<strong>Sleep Architecture:</strong> 7-9 hours of nightly sleep prioritizing deep sleep and REM cycles through temperature control and darkness.",
+          "<strong>Zone 2 Aerobic Base:</strong> Conversational-pace cardio (walking, cycling, rowing) to improve mitochondrial density.",
+        ],
+        resumeRules: [
+          "<strong>Consistency over Intensity:</strong> 4 moderate workouts per week executed for 6 months beats 2 weeks of extreme overtraining.",
+          "<strong>Objective Tracking:</strong> Log weekly average body weight, waist circumference, strength metrics, and resting heart rate.",
+          "<strong>Nutrition Quality:</strong> Prioritize 80%+ single-ingredient whole foods before worrying about micro-supplements.",
+        ],
+        interviewQuestions: [
+          {
+            q: "How do I overcome workout inconsistency when work gets busy?",
+            a: "Default to a minimum viable workout: 20 minutes of high-leverage compound movements or brisk incline walking instead of skipping entirely.",
+          },
+          {
+            q: "What is the most effective lever for mental clarity and fat loss?",
+            a: "Prioritize consistent 8-hour sleep and whole-food protein targets; poor sleep spikes ghrelin (hunger) and degrades executive function.",
+          },
+        ],
+      },
+    }
+  }
 
   // 1. ARTIFICIAL INTELLIGENCE / MACHINE LEARNING / DATA SCIENCE
   if (/(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)/i.test(q)) {
@@ -760,8 +955,8 @@ export function getDomainRoadmapData(title: string, goal?: string): DomainRoadma
   }
 }
 
-export function buildIntelligentRoadmap(title: string, goal?: string): { nodes: Node<FlowData>[]; edges: Edge[] } {
-  const domainData = getDomainRoadmapData(title, goal)
+export function buildIntelligentRoadmap(title: string, goal?: string, category?: string): { nodes: Node<FlowData>[]; edges: Edge[] } {
+  const domainData = getDomainRoadmapData(title, goal, category)
 
   const cleanTitle = title.length > 55 ? title.slice(0, 52) + "..." : title || "Goal Roadmap"
   const cleanGoal = goal ? (goal.length > 75 ? goal.slice(0, 72) + "..." : goal) : "Define core constraints and target milestones"
@@ -1046,15 +1241,16 @@ export function SimulationCanvas() {
 
   const passedTitle = searchParams.get("title") || ""
   const passedGoal = searchParams.get("goal") || ""
+  const passedCategory = searchParams.get("category") || ""
 
   const queryClient = useQueryClient()
 
   const initialRoadmap = useMemo(() => {
     if (passedTitle) {
-      return buildIntelligentRoadmap(passedTitle, passedGoal)
+      return buildIntelligentRoadmap(passedTitle, passedGoal, passedCategory)
     }
     return { nodes: defaultTemplateNodes, edges: defaultTemplateEdges }
-  }, [passedTitle, passedGoal])
+  }, [passedTitle, passedGoal, passedCategory])
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<FlowData>>(initialRoadmap.nodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialRoadmap.edges)
@@ -1071,7 +1267,8 @@ export function SimulationCanvas() {
 
   const handleAutoBuildRoadmap = () => {
     const currentGoal = existing.data?.goal || passedGoal || (nodes.find((n) => n.type === "start")?.data.description as string) || ""
-    const roadmap = buildIntelligentRoadmap(title || passedTitle, currentGoal)
+    const currentCategory = existing.data?.category || passedCategory || ""
+    const roadmap = buildIntelligentRoadmap(title || passedTitle, currentGoal, currentCategory)
     setNodes(roadmap.nodes)
     setEdges(roadmap.edges)
     setResults(null)
@@ -1081,8 +1278,9 @@ export function SimulationCanvas() {
   const domainData = useMemo(() => {
     const currentTitle = title || existing.data?.title || passedTitle || "Decision Roadmap"
     const currentGoal = existing.data?.goal || passedGoal || (nodes.find((n) => n.type === "start")?.data.description as string) || ""
-    return getDomainRoadmapData(currentTitle, currentGoal)
-  }, [title, existing.data?.title, existing.data?.goal, passedTitle, passedGoal, nodes])
+    const currentCategory = existing.data?.category || passedCategory || ""
+    return getDomainRoadmapData(currentTitle, currentGoal, currentCategory)
+  }, [title, existing.data?.title, existing.data?.goal, existing.data?.category, passedTitle, passedGoal, passedCategory, nodes])
 
   const onConnect = useCallback(
     (connection: Connection) =>
@@ -1441,54 +1639,56 @@ export function SimulationCanvas() {
               </div>
 
               {/* SECTION: LINKEDIN & NAUKRI PORTALS */}
-              <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  💼 Sourcing Opportunities for &quot;{domainData.jobKeywords}&quot;
-                </h3>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  <a
-                    href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainData.jobKeywords)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="portal-link-btn portal-btn-linkedin"
-                    style={{ fontSize: 10, padding: "5px 10px" }}
-                  >
-                    LinkedIn: {domainData.jobKeywords.slice(0, 20)} <ExternalLink size={10} />
-                  </a>
-                  <a
-                    href={`https://www.naukri.com/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-jobs`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="portal-link-btn portal-btn-naukri"
-                    style={{ fontSize: 10, padding: "5px 10px" }}
-                  >
-                    Naukri Roles <ExternalLink size={10} />
-                  </a>
-                  <a
-                    href={`https://internshala.com/internships/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-internship`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="portal-link-btn portal-btn-internshala"
-                    style={{ fontSize: 10, padding: "5px 10px" }}
-                  >
-                    Internshala <ExternalLink size={10} />
-                  </a>
-                  <a
-                    href="https://wellfound.com/jobs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="portal-link-btn portal-btn-wellfound"
-                    style={{ fontSize: 10, padding: "5px 10px" }}
-                  >
-                    Wellfound Startups <ExternalLink size={10} />
-                  </a>
+              {domainData.jobKeywords && domainData.jobKeywords.trim().length > 0 && (
+                <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
+                  <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
+                    💼 Sourcing Opportunities for &quot;{domainData.jobKeywords}&quot;
+                  </h3>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    <a
+                      href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainData.jobKeywords)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="portal-link-btn portal-btn-linkedin"
+                      style={{ fontSize: 10, padding: "5px 10px" }}
+                    >
+                      LinkedIn: {domainData.jobKeywords.slice(0, 20)} <ExternalLink size={10} />
+                    </a>
+                    <a
+                      href={`https://www.naukri.com/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-jobs`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="portal-link-btn portal-btn-naukri"
+                      style={{ fontSize: 10, padding: "5px 10px" }}
+                    >
+                      Naukri Roles <ExternalLink size={10} />
+                    </a>
+                    <a
+                      href={`https://internshala.com/internships/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-internship`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="portal-link-btn portal-btn-internshala"
+                      style={{ fontSize: 10, padding: "5px 10px" }}
+                    >
+                      Internshala <ExternalLink size={10} />
+                    </a>
+                    <a
+                      href="https://wellfound.com/jobs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="portal-link-btn portal-btn-wellfound"
+                      style={{ fontSize: 10, padding: "5px 10px" }}
+                    >
+                      Wellfound Startups <ExternalLink size={10} />
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* SECTION 1: LANGUAGES & TECH */}
+              {/* SECTION 1: LANGUAGES & TECH / FRAMEWORKS */}
               <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
                 <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  💻 1. Exact Languages, Tools &amp; Methodologies to Learn
+                  {domainData.jobKeywords ? "💻 1. Exact Languages, Tools & Methodologies to Learn" : "🔍 1. Key Frameworks, Tools & Protocols"}
                 </h3>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, lineHeight: 1.6, color: "#5c564c" }}>
                   {domainData.guide.languagesAndTools.map((item, idx) => (
@@ -1497,10 +1697,10 @@ export function SimulationCanvas() {
                 </ul>
               </div>
 
-              {/* SECTION 2: HOW TO MAKE RESUME */}
+              {/* SECTION 2: HOW TO MAKE RESUME / EXECUTION PRINCIPLES */}
               <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
                 <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  📄 2. High-Impact ATS Resume &amp; Proof of Work Blueprint
+                  {domainData.jobKeywords ? "📄 2. High-Impact ATS Resume & Proof of Work Blueprint" : "📋 2. Execution Principles & Success Blueprint"}
                 </h3>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, lineHeight: 1.6, color: "#5c564c" }}>
                   {domainData.guide.resumeRules.map((rule, idx) => (
@@ -1509,10 +1709,10 @@ export function SimulationCanvas() {
                 </ul>
               </div>
 
-              {/* SECTION 3: HOW TO CRACK INTERVIEW */}
+              {/* SECTION 3: HOW TO CRACK INTERVIEW / CRITICAL QUESTIONS */}
               <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
                 <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  🎯 3. Top Crucial Technical &amp; Screening Interview Questions
+                  {domainData.jobKeywords ? "🎯 3. Top Crucial Technical & Screening Interview Questions" : "🎯 3. Critical Questions & Alignment Protocols"}
                 </h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 9, fontSize: 11, color: "#5c564c" }}>
                   {domainData.guide.interviewQuestions.map((qa, idx) => (

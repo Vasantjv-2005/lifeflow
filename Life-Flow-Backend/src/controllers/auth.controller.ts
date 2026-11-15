@@ -6,6 +6,14 @@ import {
     loginUser,
     getUserProfile,
 } from "../services/auth/auth.service";
+import {
+    generateGoogleAuthUrl,
+    handleGoogleCallbackService,
+} from "../services/auth/google.service";
+import {
+    generateGithubAuthUrl,
+    handleGithubCallbackService,
+} from "../services/auth/github.service";
 
 const COOKIE_NAME = "accessToken";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
@@ -118,5 +126,188 @@ export const getCurrentUser = async (
         });
     } catch (error: unknown) {
         next(error);
+    }
+};
+
+// GET /api/auth/google
+export const googleAuth = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): void => {
+    try {
+        const isSwitch = req.query.switch === "1" || req.query.prompt === "select_account";
+
+        // If user is switching accounts, clear the active LifeFlow session cookie first
+        if (isSwitch) {
+            res.clearCookie(COOKIE_NAME, {
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: isProduction ? "none" : "lax",
+                path: "/",
+            });
+        }
+
+        const { url, state } = generateGoogleAuthUrl(true);
+
+        // Store CSRF state in secure httpOnly cookie (valid for 10 minutes)
+        res.cookie("oauth_state", state, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+            maxAge: 10 * 60 * 1000,
+        });
+
+        res.redirect(url);
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// GET /api/auth/google/callback
+export const googleCallback = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { code, state, error: googleError } = req.query;
+
+        // If user cancelled or Google returned an error
+        if (googleError) {
+            const errParam = typeof googleError === "string" ? googleError : "access_denied";
+            res.redirect(`${env.CLIENT_URL}/login?error=${encodeURIComponent(errParam)}`);
+            return;
+        }
+
+        // Validate state for CSRF protection
+        const cookieState = req.cookies?.oauth_state;
+        res.clearCookie("oauth_state", {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+        });
+
+        if (!state || !cookieState || state !== cookieState) {
+            res.redirect(
+                `${env.CLIENT_URL}/login?error=${encodeURIComponent("Authentication state mismatch. Possible CSRF attack.")}`
+            );
+            return;
+        }
+
+        if (!code || typeof code !== "string") {
+            res.redirect(
+                `${env.CLIENT_URL}/login?error=${encodeURIComponent("Authorization code missing from Google.")}`
+            );
+            return;
+        }
+
+        const result = await handleGoogleCallbackService(code);
+
+        // Set the LifeFlow JWT in the secure HTTP-only cookie
+        res.cookie(COOKIE_NAME, result.token, cookieOptions);
+
+        // Redirect directly to the dashboard
+        res.redirect(`${env.CLIENT_URL}/dashboard`);
+    } catch (error: unknown) {
+        const msg = (error as Error)?.message || "Google authentication failed";
+        console.error("❌ Google callback error:", msg);
+        res.redirect(`${env.CLIENT_URL}/login?error=${encodeURIComponent(msg)}`);
+    }
+};
+
+// GET /api/auth/github
+export const githubAuth = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): void => {
+    try {
+        const isSwitch = req.query.switch === "1" || req.query.prompt === "select_account";
+
+        // If user is switching accounts, clear the active LifeFlow session cookie first
+        if (isSwitch) {
+            res.clearCookie(COOKIE_NAME, {
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: isProduction ? "none" : "lax",
+                path: "/",
+            });
+        }
+
+        const { url, state } = generateGithubAuthUrl(true);
+
+        // Store CSRF state in secure httpOnly cookie (valid for 10 minutes)
+        res.cookie("oauth_state", state, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+            maxAge: 10 * 60 * 1000,
+        });
+
+        res.redirect(url);
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// GET /api/auth/github/callback
+export const githubCallback = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { code, state, error: ghError, error_description } = req.query;
+
+        // If user cancelled or GitHub returned an error
+        if (ghError) {
+            const errParam =
+                typeof error_description === "string"
+                    ? error_description
+                    : typeof ghError === "string"
+                    ? ghError
+                    : "access_denied";
+            res.redirect(`${env.CLIENT_URL}/login?error=${encodeURIComponent(errParam)}`);
+            return;
+        }
+
+        // Validate state for CSRF protection
+        const cookieState = req.cookies?.oauth_state;
+        res.clearCookie("oauth_state", {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
+        });
+
+        if (!state || !cookieState || state !== cookieState) {
+            res.redirect(
+                `${env.CLIENT_URL}/login?error=${encodeURIComponent("Authentication state mismatch. Possible CSRF attack.")}`
+            );
+            return;
+        }
+
+        if (!code || typeof code !== "string") {
+            res.redirect(
+                `${env.CLIENT_URL}/login?error=${encodeURIComponent("Authorization code missing from GitHub.")}`
+            );
+            return;
+        }
+
+        const result = await handleGithubCallbackService(code);
+
+        // Set the LifeFlow JWT in the secure HTTP-only cookie
+        res.cookie(COOKIE_NAME, result.token, cookieOptions);
+
+        // Redirect directly to the dashboard
+        res.redirect(`${env.CLIENT_URL}/dashboard`);
+    } catch (error: unknown) {
+        const msg = (error as Error)?.message || "GitHub authentication failed";
+        console.error("❌ GitHub callback error:", msg);
+        res.redirect(`${env.CLIENT_URL}/login?error=${encodeURIComponent(msg)}`);
     }
 };

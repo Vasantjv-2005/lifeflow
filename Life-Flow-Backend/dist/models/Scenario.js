@@ -54,7 +54,7 @@ const scenarioStepSchema = new mongoose_1.Schema({
         type: String,
         required: [true, "Step description is required"],
         trim: true,
-        maxlength: [1000, "Step description cannot exceed 1000 characters"],
+        maxlength: [3000, "Step description cannot exceed 3000 characters"],
     },
     timeframe: {
         type: String,
@@ -79,7 +79,7 @@ const scenarioOutcomeSchema = new mongoose_1.Schema({
         type: String,
         required: [true, "Outcome description is required"],
         trim: true,
-        maxlength: [1000, "Outcome description cannot exceed 1000 characters"],
+        maxlength: [3000, "Outcome description cannot exceed 3000 characters"],
     },
     probability: {
         type: Number,
@@ -123,7 +123,7 @@ const scenarioSchema = new mongoose_1.Schema({
     description: {
         type: String,
         trim: true,
-        maxlength: [1000, "Scenario description cannot exceed 1000 characters"],
+        maxlength: [3000, "Scenario description cannot exceed 3000 characters"],
     },
     type: {
         type: String,

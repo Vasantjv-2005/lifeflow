@@ -100,6 +100,10 @@ export const changeUserPassword = async (
         throw new AppError("User not found.", 404);
     }
 
+    if (!user.password) {
+        throw new AppError("This account was created with Google Sign-In and does not have a local password.", 400);
+    }
+
     const passwordMatches = await comparePassword(
         currentPassword,
         user.password

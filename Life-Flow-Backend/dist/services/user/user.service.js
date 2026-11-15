@@ -72,6 +72,9 @@ const changeUserPassword = async (userId, input) => {
     if (!user) {
         throw new error_middleware_1.AppError("User not found.", 404);
     }
+    if (!user.password) {
+        throw new error_middleware_1.AppError("This account was created with Google Sign-In and does not have a local password.", 400);
+    }
     const passwordMatches = await (0, password_1.comparePassword)(currentPassword, user.password);
     if (!passwordMatches) {
         throw new error_middleware_1.AppError("Current password is incorrect.", 401);

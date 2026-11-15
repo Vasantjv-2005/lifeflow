@@ -27,11 +27,12 @@ import {
   Monitor,
 } from "lucide-react"
 import { useAuthStore } from "@/lib/use-auth-store"
+import { toast } from "sonner"
 
 type ScenarioType = "optimistic" | "realistic" | "pessimistic"
 
 export function LandingPage() {
-  const { user, fetchUser } = useAuthStore()
+  const { user, fetchUser, isInitialized, logout } = useAuthStore()
   const [mounted, setMounted] = useState(false)
   const [activeScenario, setActiveScenario] = useState<ScenarioType>("optimistic")
   const [activeTab, setActiveTab] = useState<"roadmap" | "canvas">("roadmap")
@@ -39,7 +40,7 @@ export function LandingPage() {
 
   useEffect(() => {
     setMounted(true)
-    fetchUser().catch(() => {})
+    fetchUser().catch(() => { })
   }, [fetchUser])
 
   const scenarioData = {
@@ -196,21 +197,37 @@ export function LandingPage() {
           </nav>
 
           <div className="home-nav-actions" suppressHydrationWarning>
-            {mounted && user ? (
-              <Link href="/dashboard" className="home-btn-primary">
-                Go to Workspace ({user.name?.split(" ")[0] || "User"})
-                <ArrowRight size={15} />
-              </Link>
-            ) : (
+            {mounted && isInitialized && user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <Link href="/dashboard" className="home-btn-primary">
+                  Go to Workspace ({user.name?.split(" ")[0] || "User"})
+                  <ArrowRight size={15} />
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout()
+                    toast.success("Logged out successfully.")
+                  }}
+                  className="home-btn-secondary"
+                  style={{ padding: "8px 14px", fontSize: "12px", cursor: "pointer" }}
+                  title="Sign out of LifeFlow"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : mounted && isInitialized && !user ? (
               <>
                 <Link href="/login" className="home-btn-secondary">
                   Sign in
                 </Link>
-                <Link href="/signup" className="home-btn-primary">
+                <Link href="/register" className="home-btn-primary">
                   Launch Free
                   <ArrowRight size={14} />
                 </Link>
               </>
+            ) : (
+              <div style={{ minWidth: 150 }} />
             )}
           </div>
         </div>
@@ -228,7 +245,7 @@ export function LandingPage() {
         </h1>
 
         <p className="home-hero-subtitle">
-          Map career shifts, relocations, and big life bets with visual branching simulation trees, 
+          Map career shifts, relocations, and big life bets with visual branching simulation trees,
           multi-scenario AI forecasting, and real-time MongoDB database persistence.
         </p>
 
@@ -341,15 +358,15 @@ export function LandingPage() {
 
               <div className="mockup-user-bar">
                 <div className="mockup-avatar" suppressHydrationWarning>
-                  {mounted && user?.name ? user.name[0].toUpperCase() : "V"}
+                  {mounted && user?.name ? user.name[0].toUpperCase() : "L"}
                 </div>
                 <div className="mockup-user-info">
                   <span className="mockup-user-name" suppressHydrationWarning>
-                    {mounted && user?.name ? user.name : "Vasant Jevengekar"}
+                    {mounted && user?.name ? user.name : "Active Workspace"}
                   </span>
                   <span className="mockup-db-status">
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
-                    MongoDB Compass
+                    MongoDB Atlas
                   </span>
                 </div>
               </div>
@@ -458,14 +475,14 @@ export function LandingPage() {
                           activeScenario === "optimistic"
                             ? "rgba(16, 185, 129, 0.15)"
                             : activeScenario === "realistic"
-                            ? "rgba(245, 158, 11, 0.15)"
-                            : "rgba(239, 68, 68, 0.15)",
+                              ? "rgba(245, 158, 11, 0.15)"
+                              : "rgba(239, 68, 68, 0.15)",
                         color:
                           activeScenario === "optimistic"
                             ? "#34d399"
                             : activeScenario === "realistic"
-                            ? "#fbbf24"
-                            : "#f87171",
+                              ? "#fbbf24"
+                              : "#f87171",
                         fontWeight: 600,
                       }}
                     >
@@ -497,7 +514,7 @@ export function LandingPage() {
                 {/* RIGHT: VISUAL TREE / CANVAS PREVIEW */}
                 <div className="mockup-canvas-preview">
                   <div className="mockup-canvas-grid-bg" />
-                  
+
                   <div className="mockup-canvas-header">
                     <div className="mockup-canvas-title">
                       <GitBranch size={14} color="#c9ab8d" />
@@ -562,7 +579,7 @@ export function LandingPage() {
           </div>
           <h2>Everything You Need to Navigate Ambiguity with Confidence</h2>
           <p>
-            Traditional pros-and-cons lists fail because they ignore compounding risk and timeframes. 
+            Traditional pros-and-cons lists fail because they ignore compounding risk and timeframes.
             LifeFlow gives you an engineering-grade simulation environment for life.
           </p>
         </div>
@@ -574,7 +591,7 @@ export function LandingPage() {
             </div>
             <h3>Visual Branching Canvas</h3>
             <p>
-              Interactive node graph powered by React Flow. Connect choices, financial buffers, 
+              Interactive node graph powered by React Flow. Connect choices, financial buffers,
               probabilistic outcomes, and fallback safety nets.
             </p>
             <span className="home-feature-tag">
@@ -588,7 +605,7 @@ export function LandingPage() {
             </div>
             <h3>3-Way AI Scenario Engine</h3>
             <p>
-              Instantly simulate Optimistic, Realistic, and Conservative futures. 
+              Instantly simulate Optimistic, Realistic, and Conservative futures.
               Get clear phased milestones, timeframes, and probability tags.
             </p>
             <span className="home-feature-tag">
@@ -602,7 +619,7 @@ export function LandingPage() {
             </div>
             <h3>MongoDB Persistence & No Duplicates</h3>
             <p>
-              Every decision, scenario, and simulation graph is normalized and saved in your personal 
+              Every decision, scenario, and simulation graph is normalized and saved in your personal
               MongoDB Compass cluster with complete integrity.
             </p>
             <span className="home-feature-tag">
@@ -628,7 +645,7 @@ export function LandingPage() {
             <span className="home-step-number">01</span>
             <h3>Frame the Decision</h3>
             <p>
-              Capture what&apos;s really at stake: core goals, critical constraints, financial runway, 
+              Capture what&apos;s really at stake: core goals, critical constraints, financial runway,
               and hard emotional boundaries.
             </p>
           </div>
@@ -637,7 +654,7 @@ export function LandingPage() {
             <span className="home-step-number">02</span>
             <h3>Simulate Pathways</h3>
             <p>
-              Branch options on the visual canvas or let the AI Decision Studio project 
+              Branch options on the visual canvas or let the AI Decision Studio project
               realistic milestones and downside risk factors.
             </p>
           </div>
@@ -646,7 +663,7 @@ export function LandingPage() {
             <span className="home-step-number">03</span>
             <h3>Commit & Execute</h3>
             <p>
-              Track your clarity score, execute the highest-probability phased roadmap, 
+              Track your clarity score, execute the highest-probability phased roadmap,
               and review outcomes as circumstances unfold.
             </p>
           </div>

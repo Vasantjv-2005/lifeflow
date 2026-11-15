@@ -17,6 +17,26 @@ export interface GenerateScenariosInput {
 }
 
 /**
+ * Normalization helpers to handle LLM variations (e.g., "moderate" -> "medium", "75%" -> 75).
+ */
+const normalizeRiskOrImpact = (val: unknown): "low" | "medium" | "high" => {
+    if (typeof val !== "string") return "medium";
+    const s = val.toLowerCase().trim();
+    if (s.includes("low")) return "low";
+    if (s.includes("high") || s.includes("critical") || s.includes("severe")) return "high";
+    return "medium";
+};
+
+const normalizeScenarioType = (val: unknown): "optimistic" | "realistic" | "pessimistic" | "custom" => {
+    if (typeof val !== "string") return "realistic";
+    const s = val.toLowerCase().trim();
+    if (s.includes("optimist") || s.includes("fast") || s.includes("best")) return "optimistic";
+    if (s.includes("pessimist") || s.includes("conservat") || s.includes("worst") || s.includes("risk")) return "pessimistic";
+    if (s.includes("custom")) return "custom";
+    return "realistic";
+};
+
+/**
  * Runtime validation for AI-generated scenario data.
  *
  * AI output is validated before use.
@@ -27,17 +47,23 @@ const generatedScenarioSchema = z.object({
             z.object({
                 name: z.string().trim().min(2).max(150),
                 description: z.string().trim().min(1).max(3000),
-                type: z.enum([
-                    "optimistic",
-                    "realistic",
-                    "pessimistic",
-                    "custom",
-                ]),
-                riskLevel: z.enum(["low", "medium", "high"]),
+                type: z.preprocess(
+                    normalizeScenarioType,
+                    z.enum([
+                        "optimistic",
+                        "realistic",
+                        "pessimistic",
+                        "custom",
+                    ])
+                ),
+                riskLevel: z.preprocess(
+                    normalizeRiskOrImpact,
+                    z.enum(["low", "medium", "high"])
+                ),
                 steps: z
                     .array(
                         z.object({
-                            stepNumber: z.number().int().min(1),
+                            stepNumber: z.coerce.number().int().min(1),
                             title: z.string().trim().min(1).max(250),
                             description: z.string().trim().min(1).max(3000),
                             timeframe: z.string().trim().max(100).optional(),
@@ -49,15 +75,24 @@ const generatedScenarioSchema = z.object({
                         z.object({
                             title: z.string().trim().min(1).max(250),
                             description: z.string().trim().min(1).max(3000),
-                            probability: z.number().min(0).max(100).optional(),
-                            impact: z.enum(["low", "medium", "high"]),
+                            probability: z.preprocess((v) => {
+                                if (typeof v === "string") {
+                                    const n = parseFloat(v.replace("%", "").trim());
+                                    return isNaN(n) ? 75 : Math.min(100, Math.max(0, n));
+                                }
+                                return typeof v === "number" ? Math.min(100, Math.max(0, v)) : 75;
+                            }, z.number().min(0).max(100)).optional(),
+                            impact: z.preprocess(
+                                normalizeRiskOrImpact,
+                                z.enum(["low", "medium", "high"])
+                            ),
                         })
                     )
                     .max(10),
             })
         )
         .min(1)
-        .max(3),
+        .max(5),
 });
 
 /**
@@ -88,7 +123,7 @@ const getAIConfig = (): {
 } => {
     const apiUrl = env.AI_API_URL?.trim() || "";
     const apiKey = env.AI_API_KEY?.trim() || "";
-    const model = env.AI_MODEL?.trim() || "llama-3.3-70b-versatile";
+    const model = env.AI_MODEL?.trim() || "openai/gpt-oss-20b";
 
     return { apiUrl, apiKey, model };
 };
@@ -106,30 +141,513 @@ export const generateStructuredScenarioFallback = (
 ): GeneratedScenarios => {
     const combinedText = `${input.decisionTitle} ${input.goal} ${input.category} ${input.additionalContext || ""}`.toLowerCase();
 
-    const isAI = /(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)/i.test(
-        combinedText
-    );
-    const isCloudDevOps = /(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre|platform engineering|sysadmin)/i.test(
-        combinedText
-    );
-    const isMobile = /(mobile|flutter|react native|ios|swift|android|kotlin|app dev)/i.test(
-        combinedText
-    );
-    const isCyberSec = /(cyber|security|hacking|penetration|infosec|soc|ethical hack|network security)/i.test(
-        combinedText
-    );
-    const isDesign = /(ui|ux|ui\/ux|product design|graphic design|figma|designer)/i.test(
-        combinedText
-    );
-    const isBusiness = /(startup|business|e-commerce|agency|marketing|sales|freelance|entrepreneur|product manager|saas)/i.test(
-        combinedText
-    );
-    const isEducation = /(masters|study abroad|exam|upsc|gre|toefl|ielts|phd|gate|mba|college|university)/i.test(
-        combinedText
-    );
-    const isWebDev = /(full stack|full-stack|frontend|backend|web dev|javascript|react|node|typescript|mern|software|coding|programming|developer)/i.test(
-        combinedText
-    );
+    const cat = (input.category || "").toLowerCase();
+
+    const isRelationships =
+        /\b(relationship|relationships|partner|marriage|marry|dating|couple|family|spouse|friendship|breakup|divorce|co-living)\b/i.test(
+            combinedText
+        ) || cat.includes("relationship");
+
+    const isHealth =
+        /\b(health|fitness|wellness|wellbeing|weight|nutrition|workout|mental health|sleep|diet|exercise|therapy|bodybuilding|marathon|gym)\b/i.test(
+            combinedText
+        ) || cat.includes("health") || cat.includes("wellbeing");
+
+    const isFinance =
+        /\b(money|finance|financial|investing|investment|savings|debt|budget|wealth|portfolio|stocks|crypto|emergency fund|real estate|mortgage)\b/i.test(
+            combinedText
+        ) || cat.includes("finance") || cat.includes("money");
+
+    const isLifestyle =
+        /\b(lifestyle|habit|habits|travel|work-life|work life|minimalism|routine|hobby|digital nomad)\b/i.test(
+            combinedText
+        ) || cat.includes("lifestyle");
+
+    const isBusiness =
+        /\b(startup|business|e-commerce|agency|marketing|sales|freelance|entrepreneur|product manager|saas|cafe|coffee|roastery|restaurant|store|shop|retail)\b/i.test(
+            combinedText
+        ) || cat.includes("business");
+
+    const isEducation =
+        /\b(masters|study abroad|exam|upsc|gre|toefl|ielts|phd|gate|mba|college|university|curriculum|ph\.d)\b/i.test(
+            combinedText
+        ) || cat.includes("education");
+
+    const isAI =
+        /\b(ai|genai|llm|nlp)\b|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|computer vision/i.test(
+            combinedText
+        );
+
+    const isCloudDevOps =
+        /\b(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre)\b|platform engineering|sysadmin/i.test(
+            combinedText
+        );
+
+    const isMobile =
+        /\b(mobile|flutter|react native|ios|swift|android|kotlin)\b|app dev/i.test(
+            combinedText
+        );
+
+    const isCyberSec =
+        /\b(cyber|security|hacking|penetration|infosec|soc)\b|ethical hack|network security/i.test(
+            combinedText
+        );
+
+    const isDesign =
+        /\b(ui|ux|ui\/ux|figma)\b|product design|graphic design|designer/i.test(
+            combinedText
+        );
+
+    const isWebDev =
+        /\b(full stack|full-stack|frontend|backend|web dev|javascript|react|node|typescript|mern)\b|software engineering|software developer|web developer/i.test(
+            combinedText
+        );
+
+    // 0A. RELATIONSHIPS & INTERPERSONAL DYNAMICS
+    if (isRelationships) {
+        return {
+            scenarios: [
+                {
+                    name: "Harmonious Co-Alignment & Joint Commitment (Optimistic)",
+                    description: `Proactive relational pathway for "${input.decisionTitle}": Cultivate transparent communication, establish shared values & boundaries, align financial/living logistics, and build a flourishing partnership to achieve "${input.goal}".`,
+                    type: "optimistic",
+                    riskLevel: "low",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Deep Values, Needs & Communication Alignment",
+                            timeframe: "Weeks 1-4",
+                            description: "Facilitate dedicated conversations on core personal values, non-negotiables, future horizons, and emotional needs. Adopt Nonviolent Communication (NVC) and Gottman active listening techniques.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Transparent Financial, Career & Living Blueprint",
+                            timeframe: "Months 2-3",
+                            description: "Establish complete clarity on shared vs individual expenses, joint savings goals, personal space requirements, household chore distribution, and career commitments.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Trial Milestones & Conflict Resolution Protocols",
+                            timeframe: "Months 4-5",
+                            description: "Test co-living or shared decision-making during trips or mini-trials. Implement weekly 20-minute 'state of the union' check-ins and agreed de-escalation rules during disagreements.",
+                        },
+                        {
+                            stepNumber: 4,
+                            title: "Phase 4: Seamless Transition & Relationship Flourishing",
+                            timeframe: "Month 6",
+                            description: "Execute the transition or relocation plan smoothly with mutual support, strong individual hobbies, and shared celebration rituals fulfilling your primary relationship goal.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Thriving Shared Partnership & High Trust Foundation",
+                            description: `Both partners achieve deep emotional security and shared life trajectory fulfilling "${input.goal}".`,
+                            probability: 88,
+                            impact: "high",
+                        },
+                        {
+                            title: "Durable Joint Problem-Solving Routine Established",
+                            description: "Established healthy communication habits that prevent resentment and resolve conflict with empathy.",
+                            probability: 92,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Gradual Step-by-Step Transition & Boundary Preservation (Realistic)",
+                    description: `Pragmatic paced transition for "${input.decisionTitle}": Balancing togetherness with individual independence, steady logistical adaptation, and scheduled relationship check-ins.`,
+                    type: "realistic",
+                    riskLevel: "medium",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Open Expectation Mapping & Pacing",
+                            timeframe: "Months 1-2",
+                            description: "Identify potential friction points (routines, sleep schedules, personal time) and agree on gradual adaptation phases.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Staged Co-Living / Shared Commitments",
+                            timeframe: "Months 3-4",
+                            description: "Implement shared budgeting for joint activities while maintaining independent financial accounts and separate social circles.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Reviewing Long-Term Compatibility",
+                            timeframe: "Months 5-6",
+                            description: "Review how well the shared dynamic functions under stress, calibrate shared routines, and commit to the next milestone.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Balanced, Sustainable Relationship Dynamic",
+                            description: "Healthy progression that preserves individual identity while deepening mutual partnership.",
+                            probability: 78,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Risk-Managed Transition & Individual Safeguards (Conservative)",
+                    description: `Protective approach for "${input.decisionTitle}": Maintain individual emergency reserves, clear personal boundaries, and structured trial milestones before irreversible commitments.`,
+                    type: "pessimistic",
+                    riskLevel: "high",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Individual Autonomy & Financial Buffer",
+                            timeframe: "Months 1-2",
+                            description: "Ensure both individuals retain independent financial reserves and personal housing contingencies before committing to long leases or relocations.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Low-Stakes Trial & Third-Party Perspective",
+                            timeframe: "Months 3-5",
+                            description: "Spend extended test periods together under routine pressure. Utilize couples counseling or relationship mentorship if communication patterns stall.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Clarified Relationship Reality with Protected Independence",
+                            description: "Full clarity on true long-term compatibility without financial distress or personal compromises.",
+                            probability: 66,
+                            impact: "medium",
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    // 0B. HEALTH, FITNESS & WELLBEING
+    if (isHealth) {
+        return {
+            scenarios: [
+                {
+                    name: "Vitality & Sustainable Transformation (Optimistic)",
+                    description: `High-energy health transformation for "${input.decisionTitle}": Evidence-based nutrition, structured resistance training, restorative sleep architecture, and stress biomarkers to reach "${input.goal}".`,
+                    type: "optimistic",
+                    riskLevel: "low",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Baseline Biomarkers & Nutrition Architecture",
+                            timeframe: "Weeks 1-4",
+                            description: "Complete routine lipid/metabolic bloodwork, calculate daily caloric baseline & protein target (1.6-2.2g/kg), prioritize whole unprocessed foods, and establish 2.5L daily hydration.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Progressive Overload & Zone 2 Cardiovascular Base",
+                            timeframe: "Months 2-3",
+                            description: "Execute 3-4 weekly hypertrophy/strength workouts with tracked progressive overload, supplemented by 120 minutes of weekly Zone 2 cardio for mitochondrial efficiency.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Circadian Optimization & Sleep Architecture",
+                            timeframe: "Months 4-5",
+                            description: "Enforce consistent 10pm-6am sleep timing, morning sunlight exposure within 30 minutes of waking, and blue-light elimination 1 hour before bed to optimize deep and REM sleep.",
+                        },
+                        {
+                            stepNumber: 4,
+                            title: "Phase 4: Lifelong Habit Integration & Peak Performance",
+                            timeframe: "Month 6",
+                            description: "Consolidate health routines into automated lifestyle habits. Celebrate body composition gains, energy stability, and peak cognitive vitality.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Peak Physical Energy & Optimized Biomarkers",
+                            description: `Transform body composition, mental clarity, and metabolic vitality fulfilling "${input.goal}".`,
+                            probability: 89,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Consistent Pragmatic Wellness Ramp (Realistic)",
+                    description: `Realistic healthy living progression for "${input.decisionTitle}": Sustainable daily habit building, home cooking routines, and moderate weekly activity without burnout.`,
+                    type: "realistic",
+                    riskLevel: "medium",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Small Habit Stacking & Dietary Swaps",
+                            timeframe: "Months 1-2",
+                            description: "Eliminate sugary beverages, increase daily vegetable intake, and establish an 8,000 daily step baseline.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: 3x Weekly Moderate Exercise",
+                            timeframe: "Months 3-4",
+                            description: "Incorporate consistent bodyweight or gym exercises 3 days per week with rest days in between.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Evaluating Body Composition & Energy",
+                            timeframe: "Months 5-6",
+                            description: "Assess energy levels, waist circumference, and stamina, fine-tuning routine to ensure long-term adherence.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Sustainable Long-Term Healthy Lifestyle",
+                            description: "Consistent energy improvements and durable wellness habits that stick for years.",
+                            probability: 81,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Conservative Injury-Prevention & Recovery Ramp (Conservative)",
+                    description: `Cautious protocol for "${input.decisionTitle}": Emphasize low-impact mobility, medical supervision, and manageable pacing to prevent injury or relapse.`,
+                    type: "pessimistic",
+                    riskLevel: "high",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Professional Assessment & Gentle Movement",
+                            timeframe: "Months 1-2",
+                            description: "Consult with a physician or physiotherapist, prioritize daily 20-minute walks and gentle mobility stretching.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Gradual Caloric Deficit & Recovery Management",
+                            timeframe: "Months 3-5",
+                            description: "Implement a conservative 200-300 calorie deficit or balanced maintenance, tracking joints and sleep quality carefully.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Injury-Free Baseline & Restored Physical Confidence",
+                            description: "Safe health foundation established without setbacks or chronic exhaustion.",
+                            probability: 70,
+                            impact: "medium",
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    // 0C. MONEY, FINANCE & WEALTH
+    if (isFinance) {
+        return {
+            scenarios: [
+                {
+                    name: "Financial Independence & Wealth Architecture (Optimistic)",
+                    description: `Accelerated wealth building for "${input.decisionTitle}": Aggressive savings rate (40%+), automated low-cost index fund investing, debt elimination, and tax-advantaged compounding to achieve "${input.goal}".`,
+                    type: "optimistic",
+                    riskLevel: "low",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Zero-Based Cashflow Audit & Emergency Reserves",
+                            timeframe: "Month 1",
+                            description: "Map every dollar of income and expenditure. Cut recurring leaks, and park 3-6 months of living expenses into an FDIC-insured High-Yield Savings Account (HYSA).",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: High-Interest Debt Elimination (Avalanche Method)",
+                            timeframe: "Months 2-3",
+                            description: "Direct all surplus cashflow to extinguish credit cards and debts above 7% APR, permanently eliminating interest drag on your net worth.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Automated Index Investing & Tax-Advantaged Accounts",
+                            timeframe: "Months 4-5",
+                            description: "Automate bi-weekly SIPs into broad-market low-cost index funds (Total Stock Market / S&P 500) maximizing tax-advantaged retirement accounts (401k/IRA/PPF).",
+                        },
+                        {
+                            stepNumber: 4,
+                            title: "Phase 4: Net Worth Scaling & Milestone Realization",
+                            timeframe: "Month 6",
+                            description: "Review net worth trajectory, optimize tax strategies, and execute major financial milestone fulfilling your primary goal.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Financial Security & Automated Wealth Machine",
+                            description: `Achieve target savings or investment benchmark fulfilling "${input.goal}".`,
+                            probability: 87,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Steady 50/30/20 Budgeting & Disciplined Savings (Realistic)",
+                    description: `Pragmatic financial progress for "${input.decisionTitle}": Structured budgeting, consistent savings transfer, and steady debt reduction.`,
+                    type: "realistic",
+                    riskLevel: "medium",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Implementing 50/30/20 Rule",
+                            timeframe: "Months 1-2",
+                            description: "Allocate 50% to needs, 30% to wants, and strictly 20% to savings and extra debt principal.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: 3-Month Emergency Fund Setup",
+                            timeframe: "Months 3-4",
+                            description: "Build an initial emergency cushion to prevent falling into high-interest debt on unexpected expenses.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Beginning Systematic Investing",
+                            timeframe: "Months 5-6",
+                            description: "Open an investment account and initiate regular monthly contributions to diversified mutual funds or ETFs.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Solid Financial Stability & Reduced Money Stress",
+                            description: "Predictable monthly cashflow with growing emergency reserves and clear investment habits.",
+                            probability: 80,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Defensive Capital Preservation & Tight Liquidity (Conservative)",
+                    description: `Capital protection pathway for "${input.decisionTitle}": Prioritize immediate liquidity, reduce fixed commitments, and protect principal against market volatility.`,
+                    type: "pessimistic",
+                    riskLevel: "high",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Drastic Expense Trimming & Cash Preservation",
+                            timeframe: "Months 1-2",
+                            description: "Pinch non-essential spending, renegotiate utilities and bills, and prioritize maintaining liquid cash.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Minimum Debt Service & Conservative Buffer",
+                            timeframe: "Months 3-5",
+                            description: "Maintain on-time minimum debt payments while building a defensive cash cushion in government-backed instruments.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Weathered Financial Volatility with Capital Intact",
+                            description: "Protected against insolvency or severe cash crunches while establishing breathing room.",
+                            probability: 68,
+                            impact: "medium",
+                        },
+                    ],
+                },
+            ],
+        };
+    }
+
+    // 0D. LIFESTYLE & INTENTIONAL LIVING
+    if (isLifestyle) {
+        return {
+            scenarios: [
+                {
+                    name: "Intentional Lifestyle & Daily Energy Design (Optimistic)",
+                    description: `Purposeful lifestyle architecture for "${input.decisionTitle}": Time blocking, habit stacking, elimination of low-value obligations, and deep fulfillment to reach "${input.goal}".`,
+                    type: "optimistic",
+                    riskLevel: "low",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Time Audit & Elimination of Distractions",
+                            timeframe: "Weeks 1-4",
+                            description: "Track daily time use for 14 days. Eliminate digital clutter, reduce aimless screen time, and establish a firm evening wind-down routine.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Deep Work Blocks & Environment Design",
+                            timeframe: "Months 2-3",
+                            description: "Structure two uninterrupted 90-minute focus blocks each morning. Reconfigure physical space to make good habits effortless and bad habits friction-heavy.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Cultivating Creative Hobbies & Social Community",
+                            timeframe: "Months 4-5",
+                            description: "Schedule regular non-work creative pursuits, outdoor nature immersion, and meaningful community dinners.",
+                        },
+                        {
+                            stepNumber: 4,
+                            title: "Phase 4: Harmonious Life Rhythm & Freedom",
+                            timeframe: "Month 6",
+                            description: "Sustain balanced weekly rhythm with high mental clarity, stress resilience, and deep daily satisfaction.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Mastery of Time, Energy & Intentional Fulfillment",
+                            description: `Complete alignment between daily actions and long-term values fulfilling "${input.goal}".`,
+                            probability: 88,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Paced Habit Evolution & Work-Life Harmony (Realistic)",
+                    description: `Sustainable routine shift for "${input.decisionTitle}": Incremental schedule changes, dedicated weekend downtime, and balanced personal projects.`,
+                    type: "realistic",
+                    riskLevel: "medium",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Establishing Core Morning Routine",
+                            timeframe: "Months 1-2",
+                            description: "Create a reliable 30-minute morning routine involving hydration, light movement, and 5 minutes of quiet reflection.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Work-Life Boundary Enforcement",
+                            timeframe: "Months 3-4",
+                            description: "Set hard cutoff times for work emails and notifications after 6:30pm, protecting evenings for family and rest.",
+                        },
+                        {
+                            stepNumber: 3,
+                            title: "Phase 3: Periodic Reset & Joy Milestones",
+                            timeframe: "Months 5-6",
+                            description: "Take quarterly weekend recharge trips or digital detox days to reset mental reserves.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Refreshed Mental Clarity & Sustainable Work-Life Rhythm",
+                            description: "Durable daily balance without guilt or burnout.",
+                            probability: 79,
+                            impact: "high",
+                        },
+                    ],
+                },
+                {
+                    name: "Conservative Energy Conservation & Boundary Recovery (Conservative)",
+                    description: `Recovery-oriented approach for "${input.decisionTitle}": Protect energy reserves, say no to non-essential commitments, and recover from chronic overextension.`,
+                    type: "pessimistic",
+                    riskLevel: "high",
+                    steps: [
+                        {
+                            stepNumber: 1,
+                            title: "Phase 1: Ruthless De-Commitment & Rest",
+                            timeframe: "Months 1-2",
+                            description: "Politely decline new volunteer, social, or extra workplace demands. Prioritize 8 hours of sleep and restorative rest.",
+                        },
+                        {
+                            stepNumber: 2,
+                            title: "Phase 2: Rebuilding Core Personal Space",
+                            timeframe: "Months 3-5",
+                            description: "Slowly introduce low-stress walks, reading, and simple pleasures to restore baseline mental energy.",
+                        },
+                    ],
+                    outcomes: [
+                        {
+                            title: "Reclaimed Autonomy & Burnout Recovery",
+                            description: "Restored equilibrium with healthy boundaries protecting against future overwhelm.",
+                            probability: 69,
+                            impact: "medium",
+                        },
+                    ],
+                },
+            ],
+        };
+    }
 
     // 1. ARTIFICIAL INTELLIGENCE, DATA SCIENCE & MACHINE LEARNING
     if (isAI) {
@@ -1010,15 +1528,15 @@ export const generateStructuredScenarioFallback = (
                     },
                     {
                         stepNumber: 3,
-                        title: "Phase 3: ATS Resume / Portfolio & Professional Positioning",
+                        title: `Phase 3: Tangible Milestones & Measurable Validation`,
                         timeframe: "Month 5",
-                        description: `Package achievements into a 1-page ATS-optimized profile or portfolio highlighting quantified results, verifiable credentials, and live work samples for "${goalTitle}".`,
+                        description: `Package progress into structured deliverables, test assumptions against real feedback, and validate milestones for "${goalTitle}".`,
                     },
                     {
                         stepNumber: 4,
-                        title: "Phase 4: High-Impact Interviews, Evaluations & Execution",
+                        title: `Phase 4: Decisive Milestone Execution & Goal Realization`,
                         timeframe: "Month 6",
-                        description: `Engage with key decision makers, master technical/domain screening questions, present your deliverables, and negotiate favorable outcomes for "${primaryGoal}".`,
+                        description: `Execute the final strategic milestones, overcome critical obstacles, and establish permanent habits and systems fulfilling "${primaryGoal}".`,
                     },
                 ],
                 outcomes: [
@@ -1167,16 +1685,26 @@ export const generateScenarios = async (
                     {
                         role: "system",
                         content:
-                            "You are an expert career strategist and intelligent life simulation engine. " +
-                            "CRITICAL REQUIREMENT: YOU MUST DYNAMICALLY GENERATE SCENARIOS TAILORED EXACTLY TO WHAT THE USER TYPES IN DECISION TITLE AND GOAL! " +
-                            "DO NOT output web development or React/Node/MongoDB advice unless the user explicitly asks for web development or full-stack software engineering. " +
-                            "Whatever the user typed (e.g. Artificial Intelligence, Data Science, Cloud DevOps, Cybersecurity, Mobile Apps, Higher Education/GRE/UPSC, Startups, Personal Finance, Civil/Mechanical transitions, or any custom life goal): " +
-                            "1. Detail the EXACT domain-specific tools, programming languages, libraries, frameworks, or methodologies required specifically for THAT user goal. " +
-                            "2. Include a specific step for High-Impact ATS Resume / Portfolio / Capstone Deliverables tailored directly to that domain. " +
-                            "3. Include a specific step for Cracking Domain Interviews, Evaluations, or Pitches with high-frequency critical questions for that field. " +
-                            "4. Return 3 distinct scenarios: 'optimistic' (low risk, fast-track mastery), 'realistic' (medium risk, steady pragmatic path), and 'pessimistic' (high risk, risk-managed / conservative contingency). " +
-                            "Each step must contain stepNumber (integer starting from 1), title, timeframe, and detailed description. " +
-                            "Each outcome must contain title, description, probability (0-100), and impact (low, medium, high).",
+                            "You are an intelligent life simulation and strategic decision engine. " +
+                            "CRITICAL REQUIREMENT: YOU MUST DYNAMICALLY AND UNIQUELY GENERATE 3 DISTINCT SCENARIOS (optimistic, realistic, pessimistic) TAILORED 100% SPECIFICALLY TO THE EXACT DECISION TITLE, CATEGORY, AND GOAL PROVIDED BY THE USER! " +
+                            "NEVER return generic or repeated advice across different decisions! " +
+                            "Adapt your guidance completely according to the domain: " +
+                            "- If the category is 'Career': Detail the exact skills, portfolio projects, and technical/HR interview prep for that exact career. " +
+                            "- If the category is 'Relationships': Focus exclusively on communication, mutual emotional safety, boundary-setting, co-living/relocation logistics, and relationship milestones (DO NOT mention code, resumes, or software). " +
+                            "- If the category is 'Health & wellbeing': Focus on nutrition protocols, resistance/cardio training, circadian sleep, stress reduction, and habit milestones (DO NOT mention code or resumes). " +
+                            "- If the category is 'Money & finance': Focus on budgeting, debt elimination (avalanche/snowball), index fund investing, emergency reserves, and asset allocation (DO NOT mention code or resumes). " +
+                            "- If the category is 'Lifestyle': Focus on habit stacking, deep work time-blocking, work-life boundaries, environment redesign, and personal fulfillment. " +
+                            "- If the category is 'Education': Focus on diagnostic exams, syllabus mastery, test preparation (GRE/IELTS/UPSC/etc.), SOP writing, and admission strategy. " +
+                            "- If the category is 'Business & ventures': Focus on customer discovery, MVP prototyping, unit economics (CAC/LTV), marketing channels, and go-to-market. " +
+                            "- If 'Other' or a custom decision: Create a customized multi-phase action roadmap that directly resolves the user's specific dilemma! " +
+                            "Format: Return a valid JSON object with key 'scenarios' containing an array of 3 distinct scenario objects: " +
+                            "Each scenario must have: " +
+                            "  - name: String (creative, scenario-specific name) " +
+                            "  - description: String (clear summary of this scenario's pathway) " +
+                            "  - type: 'optimistic' | 'realistic' | 'pessimistic' " +
+                            "  - riskLevel: 'low' | 'medium' | 'high' " +
+                            "  - steps: Array of 3-5 steps, each with stepNumber (1,2,3...), title (string), timeframe (string, e.g. 'Month 1-2'), and description (actionable and tailored to the title) " +
+                            "  - outcomes: Array of 2 outcomes, each with title (string), description (string), probability (number 0-100), and impact ('low' | 'medium' | 'high').",
                     },
                     {
                         role: "user",
@@ -1184,7 +1712,7 @@ export const generateScenarios = async (
                     },
                 ],
             }),
-            signal: AbortSignal.timeout(20_000),
+            signal: AbortSignal.timeout(25_000),
         });
 
         if (!response.ok) {
@@ -1211,7 +1739,7 @@ export const generateScenarios = async (
         const validation = generatedScenarioSchema.safeParse(parsedContent);
 
         if (!validation.success) {
-            console.warn("AI output did not match schema. Using domain fallback.");
+            console.warn("AI output did not match schema:", JSON.stringify(validation.error.issues, null, 2));
             return generateStructuredScenarioFallback(input);
         }
 

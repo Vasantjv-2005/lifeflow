@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import { getCurrentUser, type User } from "./api"
+import { getCurrentUser, logout as apiLogout, type User } from "./api"
 
 type AuthState = {
   user: User | null
@@ -7,21 +7,11 @@ type AuthState = {
   isInitialized: boolean
   setUser: (user: User | null) => void
   clear: () => void
+  logout: () => Promise<void>
   fetchUser: () => Promise<User | null>
 }
 
-const getStoredUser = (): User | null => {
-  if (typeof window === "undefined") return null
-  try {
-    const raw = window.localStorage.getItem("lifeflow-user")
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
 export const useAuthStore = create<AuthState>((set) => ({
-  // Initialize with null so Server and Initial Client Render match identically without hydration mismatch
   user: null,
   loading: true,
   isInitialized: false,
@@ -32,6 +22,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         window.localStorage.setItem("lifeflow-user", JSON.stringify(user))
       } else {
         window.localStorage.removeItem("lifeflow-user")
+        window.localStorage.removeItem("lifeflow-token")
       }
     }
     set({ user, loading: false, isInitialized: true })
@@ -45,34 +36,39 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, loading: false, isInitialized: true })
   },
 
+  logout: async () => {
+    try {
+      await apiLogout()
+    } catch {
+      // Ignore if session already invalid
+    } finally {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("lifeflow-user")
+        window.localStorage.removeItem("lifeflow-token")
+      }
+      set({ user: null, loading: false, isInitialized: true })
+    }
+  },
+
   fetchUser: async () => {
     if (typeof window === "undefined") return null
 
-    // Immediately restore cached user on the client after mount
-    const cached = getStoredUser()
-    if (cached) {
-      set({ user: cached, loading: false, isInitialized: true })
-    }
-
-    const token = window.localStorage.getItem("lifeflow-token")
-    if (!token) {
-      set({ user: null, loading: false, isInitialized: true })
-      return null
-    }
-
     try {
+      // Always verify the session directly against the backend MongoDB current-user API
       const user = await getCurrentUser()
-      if (user) {
+      if (user && user.id) {
         window.localStorage.setItem("lifeflow-user", JSON.stringify(user))
         set({ user, loading: false, isInitialized: true })
         return user
       }
     } catch {
-      // Token might be expired or invalid
+      // 401 or no valid session: strictly ensure no stale cached user remains
       window.localStorage.removeItem("lifeflow-user")
       window.localStorage.removeItem("lifeflow-token")
       set({ user: null, loading: false, isInitialized: true })
     }
+
+    set({ user: null, loading: false, isInitialized: true })
     return null
   },
 }))

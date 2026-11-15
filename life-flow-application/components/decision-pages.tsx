@@ -15,6 +15,7 @@ import {
   ChevronDown,
   CircleHelp,
   Clock3,
+  Database,
   ExternalLink,
   GraduationCap,
   Layers,
@@ -30,6 +31,7 @@ import { toast } from "sonner"
 import { PageFrame, PageHeading } from "@/components/lifeflow-dashboard"
 import {
   createDecision,
+  updateDecision,
   createSimulation,
   createBatchScenarios,
   generateScenarios,
@@ -335,168 +337,219 @@ interface DomainResource {
 
 function getDomainResources(title: string, goal: string, category: string): DomainResource {
   const q = `${title} ${goal} ${category}`.toLowerCase()
+  const cat = (category || "").toLowerCase()
+  const isCareerOrEducation = cat.includes("career") || cat.includes("education")
 
-  if (/(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)/i.test(q)) {
+  // 1. Relationships & Family
+  if (/\b(relationship|relationships|partner|marriage|dating|couple|family|spouse|friendship|co-living|relocate together)\b/i.test(q) || cat.includes("relationship")) {
     return {
-      domainName: "Artificial Intelligence & Data Science",
-      marketSummary: "High global hiring demand for AI/ML Engineers, Data Scientists, and production LLM application builders.",
-      skills: ["Python", "SQL", "Pandas", "Scikit-Learn", "PyTorch", "Hugging Face", "LangChain", "Vector DBs", "FastAPI", "Docker"],
+      domainName: "Relationship Harmony & Shared Living",
+      marketSummary: "Evidence-based relationship research (Gottman Institute, NVC) emphasizes shared values, financial transparency, and constructive conflict habits.",
+      skills: ["Active Listening", "Nonviolent Communication (NVC)", "Emotional Intelligence", "Financial Transparency", "Healthy Boundary Setting", "Gottman 5:1 Conflict Ratio", "Shared Living Blueprint"],
       courses: [
         {
-          provider: "DeepLearning.AI",
-          badge: "Andrew Ng Specialization",
-          title: "Machine Learning Specialization",
-          desc: "World-renowned foundational program covering supervised learning, neural networks, and decision trees.",
-          url: "https://www.coursera.org/specializations/machine-learning-introduction",
+          provider: "The Gottman Institute",
+          badge: "Clinical Standard",
+          title: "The Seven Principles for Making Marriage Work",
+          desc: "World-renowned research on friendship, mutual admiration, emotional bank accounts, and overcoming gridlock.",
+          url: "https://www.gottman.com/",
         },
         {
-          provider: "fast.ai",
-          badge: "Open Source",
-          title: "Practical Deep Learning for Coders",
-          desc: "Hands-on PyTorch course covering CNNs, transfer learning, NLP transformers, and deployment.",
-          url: "https://course.fast.ai/",
+          provider: "NVC Center",
+          badge: "Communication",
+          title: "Nonviolent Communication Core Workshop",
+          desc: "Marshall Rosenberg's 4-step framework: Observations, Feelings, Needs, and Requests to resolve tension.",
+          url: "https://www.cnvc.org/",
         },
         {
-          provider: "Kaggle Learn",
-          badge: "Micro-Courses",
-          title: "Kaggle Applied Data Science",
-          desc: "Interactive exercises for Python, Pandas data wrangling, feature engineering, and model validation.",
-          url: "https://www.kaggle.com/learn",
+          provider: "Crucial Learning",
+          badge: "High-Stakes Dialogue",
+          title: "Crucial Conversations for Couples",
+          desc: "Proven techniques to speak persuasively, listen non-defensively, and resolve sensitive relationship topics.",
+          url: "https://cruciallearning.com/",
         },
         {
-          provider: "Stanford Online",
-          badge: "Free Audit",
-          title: "CS229 Machine Learning",
-          desc: "Rigorous theoretical and mathematical foundation in statistical learning, gradient descent, and optimization.",
-          url: "https://cs229.stanford.edu/",
+          provider: "Attachment Project",
+          badge: "Self-Discovery",
+          title: "Adult Attachment Theory & Dynamics",
+          desc: "Understand secure, anxious, and avoidant attachment patterns to foster deep relational safety.",
+          url: "https://www.attachmentproject.com/",
         },
       ],
-      jobKeywords: "AI Machine Learning Engineer",
+      jobKeywords: "",
     }
   }
 
-  if (/(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre|platform engineering|sysadmin)/i.test(q)) {
+  // 2. Health & Wellbeing / Vitality
+  if (/\b(health|fitness|wellness|wellbeing|weight|nutrition|workout|mental health|sleep|diet|exercise|therapy|marathon|gym)\b/i.test(q) || cat.includes("health") || cat.includes("wellbeing")) {
     return {
-      domainName: "Cloud Infrastructure & DevOps",
-      marketSummary: "78% of enterprise cloud postings require Docker, Kubernetes, Terraform, and AWS/Azure certification.",
-      skills: ["Linux & Bash", "Docker", "Kubernetes", "Terraform", "AWS / Azure", "CI/CD Actions", "Prometheus", "GitOps", "Python"],
+      domainName: "Health, Vitality & Wellness Protocol",
+      marketSummary: "Clinical health research confirms that progressive strength training, whole food nutrition, and 7-9 hours of restorative sleep create compound lifelong vitality.",
+      skills: ["Progressive Overload", "Zone 2 Cardiovascular Base", "Macronutrient Pacing", "Sleep Architecture (REM/Deep)", "Circadian Light Alignment", "Stress Biomarkers (HRV)", "Sustainable Habit Stacking"],
       courses: [
         {
-          provider: "Linux Foundation",
-          badge: "Official Track",
-          title: "Introduction to Linux (LFS101x)",
-          desc: "Core Linux operating system fundamentals, shell commands, file hierarchies, and systems administration.",
-          url: "https://www.edx.org/learn/linux/the-linux-foundation-introduction-to-linux",
+          provider: "Huberman Lab",
+          badge: "Neurobiology",
+          title: "Foundational Health & Sleep Toolkits",
+          desc: "Science-based protocols for sleep optimization, circadian entrainment, morning sunlight, and physical energy.",
+          url: "https://www.hubermanlab.com/",
         },
         {
-          provider: "freeCodeCamp",
-          badge: "Hands-On",
-          title: "Docker & Kubernetes Full Course",
-          desc: "Complete containerization guide: Dockerfile optimization, multi-container compose, and K8s pods & services.",
-          url: "https://www.freecodecamp.org/news/kubernetes-course/",
+          provider: "Precision Nutrition",
+          badge: "Evidence-Based",
+          title: "Metabolic Nutrition & Habit Science",
+          desc: "Sustainable nutritional habits, protein adequacy, energy balance, and behavioral lifestyle coaching.",
+          url: "https://www.precisionnutrition.com/",
         },
         {
-          provider: "AWS Skill Builder",
-          badge: "Official AWS",
-          title: "AWS Cloud Practitioner & Architect",
-          desc: "Official curriculum for AWS core infrastructure: EC2, S3, IAM, VPCs, RDS, and scalable cloud architecture.",
-          url: "https://explore.skillbuilder.aws/",
+          provider: "Stronger by Science",
+          badge: "Exercise Science",
+          title: "Resistance Training & Hypertrophy Protocols",
+          desc: "Biomechanical principles of progressive overload, recovery management, and injury prevention.",
+          url: "https://www.strongerbyscience.com/",
         },
         {
-          provider: "HashiCorp",
-          badge: "IaC Standard",
-          title: "Terraform Associate Certification Track",
-          desc: "Declare and manage cloud infrastructure as code safely across multiple cloud providers.",
-          url: "https://developer.hashicorp.com/terraform/tutorials",
+          provider: "Stanford Medicine",
+          badge: "Preventive Care",
+          title: "Lifestyle Medicine & Cardiovascular Health",
+          desc: "Cardiometabolic health, lipid optimization, blood pressure management, and long-term healthspan.",
+          url: "https://med.stanford.edu/",
         },
       ],
-      jobKeywords: "DevOps Cloud Engineer",
+      jobKeywords: "",
     }
   }
 
-  if (/(mobile|flutter|react native|ios|swift|android|kotlin|app dev)/i.test(q)) {
+  // 3. Money & Finance / Wealth
+  if (/\b(money|finance|financial|investing|investment|savings|debt|budget|wealth|portfolio|stocks|crypto|emergency fund)\b/i.test(q) || cat.includes("finance") || cat.includes("money")) {
     return {
-      domainName: "Mobile App Development",
-      marketSummary: "High demand for mobile engineers capable of shipping store-ready apps with smooth offline UX.",
-      skills: ["Flutter & Dart", "React Native", "Swift / SwiftUI", "Kotlin", "REST & GraphQL", "Firebase", "State Management", "Store CI/CD"],
+      domainName: "Personal Finance & Wealth Architecture",
+      marketSummary: "Long-term financial independence is driven by savings rate, debt elimination, low-cost index compounding, and systematic budgeting.",
+      skills: ["Zero-Based Budgeting (50/30/20)", "High-Yield Emergency Fund (3-6 Months)", "Debt Avalanche Strategy", "Broad-Market Index Funds (Bogleheads)", "Tax-Advantaged Accounts", "Automated Dollar-Cost Averaging"],
       courses: [
         {
-          provider: "Flutter.dev",
-          badge: "Google Official",
-          title: "Flutter & Dart Complete Guide",
-          desc: "Build fast cross-platform applications for iOS and Android with single codebase and reactive UI.",
-          url: "https://docs.flutter.dev/get-started/codelab",
+          provider: "Bogleheads",
+          badge: "Vanguard Philosophy",
+          title: "Bogleheads Passive Index Investing Track",
+          desc: "John Bogle's low-cost, broadly diversified index fund philosophy for compounding long-term wealth.",
+          url: "https://www.bogleheads.org/wiki/Getting_started",
         },
         {
-          provider: "React Native",
-          badge: "Open Source",
-          title: "React Native Core Architecture",
-          desc: "Learn to build cross-platform native iOS & Android applications using React and modern JavaScript.",
-          url: "https://reactnative.dev/docs/getting-started",
+          provider: "Khan Academy",
+          badge: "100% Free",
+          title: "Personal Finance Master Course",
+          desc: "Complete comprehensive modules on budgeting, credit scores, debt management, taxes, and investing.",
+          url: "https://www.khanacademy.org/college-careers-more/personal-finance",
         },
         {
-          provider: "Apple Developer",
-          badge: "Apple Official",
-          title: "Develop in Swift Tutorials",
-          desc: "Master Xcode, Swift syntax, SwiftUI declarative views, and native iOS system capabilities.",
-          url: "https://developer.apple.com/tutorials/develop-in-swift",
+          provider: "Morningstar",
+          badge: "Financial Analysis",
+          title: "Investing Classroom & Asset Allocation",
+          desc: "Master modern portfolio theory, risk tolerance assessment, and ETF/mutual fund expense ratios.",
+          url: "https://www.morningstar.com/",
         },
         {
-          provider: "Google Developers",
-          badge: "Android Official",
-          title: "Android Basics in Kotlin",
-          desc: "Official path to design Android user interfaces, handle background tasks, and deploy to Google Play.",
-          url: "https://developer.android.com/courses/android-basics-kotlin/course",
+          provider: "Financial Literacy Hub",
+          badge: "Practical Guide",
+          title: "The Psychology of Money Frameworks",
+          desc: "Behavioral finance strategies to overcome emotional spending, resist market hype, and build generational wealth.",
+          url: "https://www.investopedia.com/personal-finance-4427760",
         },
       ],
-      jobKeywords: "Mobile App Developer",
+      jobKeywords: "",
     }
   }
 
-  if (/(cyber|security|hacking|penetration|infosec|soc|ethical hack|network security)/i.test(q)) {
+  // 4. Lifestyle & Intentional Living
+  if (/\b(lifestyle|habit|habits|travel|work-life|work life|minimalism|routine|hobby|digital nomad)\b/i.test(q) || cat.includes("lifestyle")) {
     return {
-      domainName: "Cybersecurity & Information Defense",
-      marketSummary: "Critical global shortage of certified penetration testers, SOC analysts, and vulnerability researchers.",
-      skills: ["Linux", "Networking (TCP/IP)", "Python Scripting", "Wireshark", "Burp Suite", "OWASP Top 10", "Metasploit", "Security+"],
+      domainName: "Intentional Lifestyle & Daily Energy Design",
+      marketSummary: "Designing daily routines around circadian energy peaks and ruthless elimination of low-value distractions compounds personal fulfillment.",
+      skills: ["Time Blocking (Deep Work)", "Habit Stacking (Atomic Habits)", "Digital Clutter Elimination", "Work-Life Boundary Enforcement", "Environment Redesign", "Restorative Downtime Scheduling"],
       courses: [
         {
-          provider: "TryHackMe",
-          badge: "Interactive Labs",
-          title: "Pre-Security & Complete Beginner Path",
-          desc: "Hands-on browser-based labs for Linux, networking fundamentals, web vulnerabilities, and security operations.",
-          url: "https://tryhackme.com/",
+          provider: "James Clear",
+          badge: "Atomic Habits",
+          title: "The Habits Academy",
+          desc: "Scientific frameworks for making good habits easy and bad habits invisible through environment design.",
+          url: "https://jamesclear.com/atomic-habits",
         },
         {
-          provider: "PortSwigger",
-          badge: "Gold Standard",
-          title: "Web Security Academy",
-          desc: "World-class free practical labs covering SQL injection, XSS, CSRF, SSRF, and authentication flaws.",
-          url: "https://portswigger.net/web-security",
+          provider: "Cal Newport",
+          badge: "Focus & Depth",
+          title: "Deep Work & Digital Minimalism",
+          desc: "Rules for focused success in a distracted world and reclaiming autonomous control of your attention.",
+          url: "https://calnewport.com/books/deep-work/",
         },
         {
-          provider: "Professor Messer",
-          badge: "Free Certification",
-          title: "CompTIA Security+ (SY0-701) Series",
-          desc: "Complete comprehensive video training course mapping 100% of the industry-standard Security+ certification.",
-          url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-training-course/",
+          provider: "Coursera / Yale",
+          badge: "Happiness Science",
+          title: "The Science of Well-Being (Dr. Laurie Santos)",
+          desc: "Yale's most popular class: Psychological strategies to rewire your daily happiness, gratitude, and purpose.",
+          url: "https://www.coursera.org/learn/the-science-of-well-being",
         },
         {
-          provider: "Hack The Box",
-          badge: "Pro Lab",
-          title: "HTB Academy Penetration Testing",
-          desc: "Deep-dive offensive security training from reconnaissance and weaponization to post-exploitation.",
-          url: "https://academy.hackthebox.com/",
+          provider: "The Minimalists",
+          badge: "Intentionality",
+          title: "Essentialism & Meaningful Living",
+          desc: "Decluttering mental and physical space to focus exclusively on what brings genuine value and joy.",
+          url: "https://www.theminimalists.com/",
         },
       ],
-      jobKeywords: "Cybersecurity Analyst",
+      jobKeywords: "",
     }
   }
 
-  if (/(startup|business|e-commerce|agency|marketing|sales|freelance|entrepreneur|product manager|saas)/i.test(q)) {
+  // 5. Business & Ventures / Culinary & Bakery / Cafe / Retail / Startup
+  if (
+    cat.includes("business") ||
+    /\b(bakery|bake|baking|bread|sourdough|artisan|pastry|cafe|coffee|restaurant|food|culinary|catering|startup|business|venture|ventures|e-commerce|ecommerce|store|shop|boutique|retail|product manager|saas|agency|marketing|sales|freelance|entrepreneur)\b/i.test(q)
+  ) {
+    // Culinary / Bakery / Cafe / Food Business specifically
+    if (/\b(bakery|bake|baking|bread|sourdough|artisan|pastry|cafe|coffee|restaurant|food|culinary|catering)\b/i.test(q)) {
+      return {
+        domainName: "Artisan Culinary & Bakery Enterprise",
+        marketSummary: "Successful artisan bakeries and cafes rely on authentic recipe standardization, high daily inventory turns, local brand loyalty, and tight prime food/labor cost margins.",
+        skills: ["Sourdough Fermentation & Hydration Schedules", "Food Safety Standards & HACCP Protocols", "Commercial Kitchen Equipment & Daily Batch Workflow", "Prime Cost Economics (COGS < 30%, Labor < 30%)", "Wholesale Accounts & B2B Cafe Supply", "Community Branding, Storytelling & Packaging"],
+        courses: [
+          {
+            provider: "King Arthur Baking School",
+            badge: "Artisan Standard",
+            title: "Artisan Bread & Sourdough Masterclass",
+            desc: "Comprehensive baker's percentages, levain fermentation cycles, high-hydration dough shaping, and crust steam management.",
+            url: "https://www.kingarthurbaking.com/baking-school",
+          },
+          {
+            provider: "SF Baking Institute",
+            badge: "Professional Track",
+            title: "Viennoiserie & Artisan Baking Fundamentals",
+            desc: "Industrial-grade training in sourdough starters, preferments, thermal profiles, and production schedule management.",
+            url: "https://sfbi.com/",
+          },
+          {
+            provider: "Cornell University",
+            badge: "Hospitality Management",
+            title: "Food & Beverage Management Specialization",
+            desc: "Standardizing kitchen food costs, margin calculations, menu pricing engineering, and supplier vendor negotiations.",
+            url: "https://online.cornell.edu/food-and-beverage-management",
+          },
+          {
+            provider: "U.S. SBA",
+            badge: "Small Business Guide",
+            title: "Starting & Financing a Food Business",
+            desc: "Licensing, commercial health department permits, equipment leasing, and local retail location scouting.",
+            url: "https://www.sba.gov/business-guide/plan-your-business",
+          },
+        ],
+        jobKeywords: "",
+      }
+    }
+
+    // General Business, Startup & Ventures
     return {
-      domainName: "Business, Startup & Product Strategy",
+      domainName: "Business, Startup & Venture Strategy",
       marketSummary: "Validated early customer traction and strong unit economics (LTV/CAC) dramatically outperform pure theory.",
-      skills: ["Customer Discovery", "MVP Prototyping", "Unit Economics", "GTM Strategy", "Financial Modeling", "Mixpanel / Analytics", "Pitch Deck"],
+      skills: ["Customer Discovery & Problem Validation", "Rapid MVP Prototyping", "Unit Economics & CAC/LTV Ratios", "Go-To-Market (GTM) Distribution Channels", "Cash Flow & Working Capital Runway", "Conversion Rate Optimization (CRO)"],
       courses: [
         {
           provider: "Y Combinator",
@@ -527,11 +580,12 @@ function getDomainResources(title: string, goal: string, category: string): Doma
           url: "https://www.coursera.org/specializations/wharton-business-foundations",
         },
       ],
-      jobKeywords: title ? title.slice(0, 30) : "Product Manager Startup",
+      jobKeywords: "",
     }
   }
 
-  if (/(masters|study abroad|exam|upsc|gre|toefl|ielts|phd|gate|mba|college|university)/i.test(q)) {
+  // 6. Higher Education & Competitive Exams
+  if (cat.includes("education") || /\b(masters|study abroad|exam|upsc|gre|toefl|ielts|phd|gate|mba|college|university)\b/i.test(q)) {
     return {
       domainName: "Higher Education & Competitive Exam Prep",
       marketSummary: "Admissions committees and examiners reward diagnostic preparation, high mock frequency, and strong SOP narratives.",
@@ -566,11 +620,168 @@ function getDomainResources(title: string, goal: string, category: string): Doma
           url: "https://www.coursera.org/learn/writing-for-business",
         },
       ],
-      jobKeywords: "Graduate Research Fellow",
+      jobKeywords: isCareerOrEducation ? (title ? title.slice(0, 30) : "Graduate Research Fellow") : "",
     }
   }
 
-  if (/(full stack|full-stack|frontend|backend|web dev|javascript|react|node|typescript|mern|software|coding|programming|developer)/i.test(q)) {
+  // 7. Career Tech Tracks (Checked with strict word boundaries \b)
+  if (/\b(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)\b/i.test(q)) {
+    return {
+      domainName: "Artificial Intelligence & Data Science",
+      marketSummary: "High global hiring demand for AI/ML Engineers, Data Scientists, and production LLM application builders.",
+      skills: ["Python", "SQL", "Pandas", "Scikit-Learn", "PyTorch", "Hugging Face", "LangChain", "Vector DBs", "FastAPI", "Docker"],
+      courses: [
+        {
+          provider: "DeepLearning.AI",
+          badge: "Andrew Ng Specialization",
+          title: "Machine Learning Specialization",
+          desc: "World-renowned foundational program covering supervised learning, neural networks, and decision trees.",
+          url: "https://www.coursera.org/specializations/machine-learning-introduction",
+        },
+        {
+          provider: "fast.ai",
+          badge: "Open Source",
+          title: "Practical Deep Learning for Coders",
+          desc: "Hands-on PyTorch course covering CNNs, transfer learning, NLP transformers, and deployment.",
+          url: "https://course.fast.ai/",
+        },
+        {
+          provider: "Kaggle Learn",
+          badge: "Micro-Courses",
+          title: "Kaggle Applied Data Science",
+          desc: "Interactive exercises for Python, Pandas data wrangling, feature engineering, and model validation.",
+          url: "https://www.kaggle.com/learn",
+        },
+        {
+          provider: "Stanford Online",
+          badge: "Free Audit",
+          title: "CS229 Machine Learning",
+          desc: "Rigorous theoretical and mathematical foundation in statistical learning, gradient descent, and optimization.",
+          url: "https://cs229.stanford.edu/",
+        },
+      ],
+      jobKeywords: isCareerOrEducation ? "AI Machine Learning Engineer" : "",
+    }
+  }
+
+  if (/\b(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre|platform engineering|sysadmin)\b/i.test(q)) {
+    return {
+      domainName: "Cloud Infrastructure & DevOps",
+      marketSummary: "78% of enterprise cloud postings require Docker, Kubernetes, Terraform, and AWS/Azure certification.",
+      skills: ["Linux & Bash", "Docker", "Kubernetes", "Terraform", "AWS / Azure", "CI/CD Actions", "Prometheus", "GitOps", "Python"],
+      courses: [
+        {
+          provider: "Linux Foundation",
+          badge: "Official Track",
+          title: "Introduction to Linux (LFS101x)",
+          desc: "Core Linux operating system fundamentals, shell commands, file hierarchies, and systems administration.",
+          url: "https://www.edx.org/learn/linux/the-linux-foundation-introduction-to-linux",
+        },
+        {
+          provider: "freeCodeCamp",
+          badge: "Hands-On",
+          title: "Docker & Kubernetes Full Course",
+          desc: "Complete containerization guide: Dockerfile optimization, multi-container compose, and K8s pods & services.",
+          url: "https://www.freecodecamp.org/news/kubernetes-course/",
+        },
+        {
+          provider: "AWS Skill Builder",
+          badge: "Official AWS",
+          title: "AWS Cloud Practitioner & Architect",
+          desc: "Official curriculum for AWS core infrastructure: EC2, S3, IAM, VPCs, RDS, and scalable cloud architecture.",
+          url: "https://explore.skillbuilder.aws/",
+        },
+        {
+          provider: "HashiCorp",
+          badge: "IaC Standard",
+          title: "Terraform Associate Certification Track",
+          desc: "Declare and manage cloud infrastructure as code safely across multiple cloud providers.",
+          url: "https://developer.hashicorp.com/terraform/tutorials",
+        },
+      ],
+      jobKeywords: isCareerOrEducation ? "DevOps Cloud Engineer" : "",
+    }
+  }
+
+  if (/\b(mobile|flutter|react native|ios|swift|android|kotlin|app dev)\b/i.test(q)) {
+    return {
+      domainName: "Mobile App Development",
+      marketSummary: "High demand for mobile engineers capable of shipping store-ready apps with smooth offline UX.",
+      skills: ["Flutter & Dart", "React Native", "Swift / SwiftUI", "Kotlin", "REST & GraphQL", "Firebase", "State Management", "Store CI/CD"],
+      courses: [
+        {
+          provider: "Flutter.dev",
+          badge: "Google Official",
+          title: "Flutter & Dart Complete Guide",
+          desc: "Build fast cross-platform applications for iOS and Android with single codebase and reactive UI.",
+          url: "https://docs.flutter.dev/get-started/codelab",
+        },
+        {
+          provider: "React Native",
+          badge: "Open Source",
+          title: "React Native Core Architecture",
+          desc: "Learn to build cross-platform native iOS & Android applications using React and modern JavaScript.",
+          url: "https://reactnative.dev/docs/getting-started",
+        },
+        {
+          provider: "Apple Developer",
+          badge: "Apple Official",
+          title: "Develop in Swift Tutorials",
+          desc: "Master Xcode, Swift syntax, SwiftUI declarative views, and native iOS system capabilities.",
+          url: "https://developer.apple.com/tutorials/develop-in-swift",
+        },
+        {
+          provider: "Google Developers",
+          badge: "Android Official",
+          title: "Android Basics in Kotlin",
+          desc: "Official path to design Android user interfaces, handle background tasks, and deploy to Google Play.",
+          url: "https://developer.android.com/courses/android-basics-kotlin/course",
+        },
+      ],
+      jobKeywords: isCareerOrEducation ? "Mobile App Developer" : "",
+    }
+  }
+
+  if (/\b(cyber|cybersecurity|security|hacking|penetration|infosec|soc|ethical hack|network security)\b/i.test(q)) {
+    return {
+      domainName: "Cybersecurity & Information Defense",
+      marketSummary: "Critical global shortage of certified penetration testers, SOC analysts, and vulnerability researchers.",
+      skills: ["Linux", "Networking (TCP/IP)", "Python Scripting", "Wireshark", "Burp Suite", "OWASP Top 10", "Metasploit", "Security+"],
+      courses: [
+        {
+          provider: "TryHackMe",
+          badge: "Interactive Labs",
+          title: "Pre-Security & Complete Beginner Path",
+          desc: "Hands-on browser-based labs for Linux, networking fundamentals, web vulnerabilities, and security operations.",
+          url: "https://tryhackme.com/",
+        },
+        {
+          provider: "PortSwigger",
+          badge: "Gold Standard",
+          title: "Web Security Academy",
+          desc: "World-class free practical labs covering SQL injection, XSS, CSRF, SSRF, and authentication flaws.",
+          url: "https://portswigger.net/web-security",
+        },
+        {
+          provider: "Professor Messer",
+          badge: "Free Certification",
+          title: "CompTIA Security+ (SY0-701) Series",
+          desc: "Complete comprehensive video training course mapping 100% of the industry-standard Security+ certification.",
+          url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-training-course/",
+        },
+        {
+          provider: "Hack The Box",
+          badge: "Pro Lab",
+          title: "HTB Academy Penetration Testing",
+          desc: "Deep-dive offensive security training from reconnaissance and weaponization to post-exploitation.",
+          url: "https://academy.hackthebox.com/",
+        },
+      ],
+      jobKeywords: isCareerOrEducation ? "Cybersecurity Analyst" : "",
+    }
+  }
+
+  if (/\b(full stack|full-stack|frontend|backend|web dev|javascript|react|node|typescript|mern|software|coding|programming|developer)\b/i.test(q)) {
     return {
       domainName: "Full-Stack Software Engineering",
       marketSummary: "82% of entry developer postings require React + Node.js or TypeScript with live deployed projects.",
@@ -605,7 +816,7 @@ function getDomainResources(title: string, goal: string, category: string): Doma
           url: "https://cs50.harvard.edu/web/",
         },
       ],
-      jobKeywords: "Full Stack Developer",
+      jobKeywords: isCareerOrEducation ? "Full Stack Developer" : "",
     }
   }
 
@@ -613,8 +824,10 @@ function getDomainResources(title: string, goal: string, category: string): Doma
   const cleanQ = title || goal || "career transition"
   return {
     domainName: `Tailored Strategy: ${cleanQ}`,
-    marketSummary: `Active hiring & opportunity trends for "${cleanQ}" across leading industry portals and professional networks.`,
-    skills: ["Prerequisite Fundamentals", "Core Domain Methodologies", "Quantifiable Proof of Work", "1-Page ATS Resume", "Interview & Evaluation Readiness"],
+    marketSummary: isCareerOrEducation
+      ? `Active hiring & opportunity trends for "${cleanQ}" across leading industry portals and professional networks.`
+      : `Core foundational methodologies and execution framework for "${cleanQ}".`,
+    skills: ["Prerequisite Fundamentals", "Core Domain Methodologies", "Quantifiable Proof of Work", "Action Plan Execution", "Risk Mitigation & Review"],
     courses: [
       {
         provider: "Coursera",
@@ -645,34 +858,89 @@ function getDomainResources(title: string, goal: string, category: string): Doma
         url: `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(cleanQ)}`,
       },
     ],
-    jobKeywords: cleanQ,
+    jobKeywords: isCareerOrEducation ? cleanQ : "",
   }
 }
 
 export function AIStudioPage() {
   const router = useRouter()
+  const [selectedDecisionId, setSelectedDecisionId] = useState<string>("")
   const [decisionTitle, setDecisionTitle] = useState("")
   const [category, setCategory] = useState("Career")
   const [goal, setGoal] = useState("")
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [savingDecision, setSavingDecision] = useState(false)
   const [context, setContext] = useState("")
 
   const domainRes = useMemo(
     () => getDomainResources(decisionTitle, goal, category),
     [decisionTitle, goal, category]
   )
+  const isCareerOrEducation = useMemo(() => {
+    const c = (category || "").toLowerCase()
+    return c.includes("career") || c.includes("education")
+  }, [category])
 
   const queryClient = useQueryClient()
   const query = useQuery({ queryKey: ["decisions"], queryFn: getDecisions })
   const decisions: Decision[] = Array.isArray(query.data) ? query.data : []
 
   const handleSelectExistingDecision = (d: Decision) => {
+    setSelectedDecisionId(d.id)
     setDecisionTitle(d.title)
     setCategory(d.category || "Career")
     setGoal(d.goal || "")
     setContext(d.currentSituation || "")
+    toast.success(`Loaded "${d.title}" from MongoDB`)
+  }
+
+  const handleResetToNewDecision = () => {
+    setSelectedDecisionId("")
+    setDecisionTitle("")
+    setCategory("Career")
+    setGoal("")
+    setContext("")
+    setScenarios([])
+    toast.info("Cleared form. Ready to define a new decision.")
+  }
+
+  const handleSaveDecisionDirectly = async (asNew: boolean = false) => {
+    if (decisionTitle.trim().length < 2) {
+      toast.error("Please enter a decision title (at least 2 characters) before saving.")
+      return
+    }
+    setSavingDecision(true)
+    try {
+      if (selectedDecisionId && !asNew) {
+        await updateDecision(selectedDecisionId, {
+          title: decisionTitle.trim(),
+          category,
+          goal: goal.trim(),
+          currentSituation: context.trim(),
+        })
+        toast.success(`Updated "${decisionTitle.trim()}" directly in MongoDB!`)
+      } else {
+        const created = await createDecision({
+          title: decisionTitle.trim(),
+          category,
+          goal: goal.trim(),
+          currentSituation: context.trim(),
+          status: "active",
+        })
+        if (created?.id) {
+          setSelectedDecisionId(created.id)
+        }
+        toast.success(`Saved "${decisionTitle.trim()}" directly to MongoDB!`)
+      }
+      queryClient.invalidateQueries({ queryKey: ["decisions"] })
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg || "Failed to save decision to MongoDB.")
+    } finally {
+      setSavingDecision(false)
+    }
   }
 
   const run = async () => {
@@ -682,6 +950,32 @@ export function AIStudioPage() {
     }
     setLoading(true)
     try {
+      // Auto-save or sync the decision directly to MongoDB so it's always persisted
+      try {
+        if (selectedDecisionId) {
+          await updateDecision(selectedDecisionId, {
+            title: decisionTitle.trim(),
+            category,
+            goal: goal.trim(),
+            currentSituation: context.trim(),
+          })
+        } else {
+          const created = await createDecision({
+            title: decisionTitle.trim(),
+            category,
+            goal: goal.trim(),
+            currentSituation: context.trim(),
+            status: "active",
+          })
+          if (created?.id) {
+            setSelectedDecisionId(created.id)
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ["decisions"] })
+      } catch (saveErr) {
+        console.warn("Could not auto-sync decision to MongoDB:", saveErr)
+      }
+
       const data = await generateScenarios({
         decisionTitle: decisionTitle.trim(),
         category,
@@ -689,7 +983,7 @@ export function AIStudioPage() {
         additionalContext: context.trim() || undefined,
       })
       setScenarios(data.scenarios || [])
-      toast.success("AI generated 3 distinct scenarios successfully.")
+      toast.success("Decision saved to MongoDB & scenarios generated!")
     } catch (error: unknown) {
       const status = (error as { response?: { status?: number } }).response?.status
       const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message
@@ -868,23 +1162,65 @@ export function AIStudioPage() {
               </div>
             </div>
 
-            {decisions.length > 0 && (
-              <div className="quick-select-wrap">
-                <span className="quick-select-label">Load from your saved decisions:</span>
-                <div className="quick-select-chips">
-                  {decisions.slice(0, 3).map((d) => (
-                    <button
-                      type="button"
-                      key={d.id}
-                      className="quick-chip"
-                      onClick={() => handleSelectExistingDecision(d)}
-                    >
-                      {d.title}
-                    </button>
-                  ))}
-                </div>
+            {/* SAVED DECISIONS DROPDOWN */}
+            <div className="saved-decisions-picker">
+              <div className="picker-header">
+                <span className="picker-label">
+                  <Database size={13} style={{ color: "#10b981", marginRight: 6 }} />
+                  Load from your saved decisions:
+                </span>
+                <span className="picker-badge">
+                  {decisions.length} available
+                </span>
               </div>
-            )}
+
+              <div className="picker-select-wrap">
+                <select
+                  className="decision-saved-dropdown"
+                  value={selectedDecisionId}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === "__new__") {
+                      handleResetToNewDecision()
+                    } else if (val) {
+                      const found = decisions.find((d) => d.id === val)
+                      if (found) handleSelectExistingDecision(found)
+                    } else {
+                      setSelectedDecisionId("")
+                    }
+                  }}
+                >
+                  <option value="">
+                    {decisions.length > 0
+                      ? `-- Select a saved decision (${decisions.length} available) --`
+                      : "-- No saved decisions in MongoDB yet --"}
+                  </option>
+                  <option value="__new__">+ Start with a New / Blank Decision</option>
+                  {decisions.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.title} • [{d.category || "General"}]
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={15} className="picker-chevron" />
+              </div>
+
+              {selectedDecisionId && (
+                <div className="picker-loaded-bar">
+                  <span>
+                    Active Decision: <strong>{decisionTitle || "Loaded Decision"}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    className="picker-clear-btn"
+                    onClick={handleResetToNewDecision}
+                    title="Clear and create a new decision"
+                  >
+                    <X size={12} /> Clear / New
+                  </button>
+                </div>
+              )}
+            </div>
 
             <label className="form-label">
               Decision Under Consideration
@@ -926,12 +1262,21 @@ export function AIStudioPage() {
               />
             </label>
 
-            <button className="button button-dark studio-submit" onClick={run} disabled={loading}>
+            <button
+              type="button"
+              className="button button-dark studio-submit"
+              onClick={run}
+              disabled={loading}
+              style={{ width: "100%", marginTop: 10 }}
+            >
               <Sparkles size={16} />
-              {loading ? "Generating Scenarios with AI..." : "Generate Scenarios"}
+              {loading ? "Saving to MongoDB & Generating Scenarios..." : "Generate Scenarios"}
               <ArrowRight size={15} />
             </button>
-            <p className="studio-note">Scenarios are generated via AI and can be saved to your MongoDB database.</p>
+            <p className="studio-note">
+              <ShieldCheck size={13} style={{ color: "#10b981", display: "inline-block", marginRight: 5 }} />
+              Decisions, parameters, and generated scenarios are automatically saved directly to your MongoDB database.
+            </p>
           </article>
 
           <div className="scenario-column">
@@ -1041,10 +1386,14 @@ export function AIStudioPage() {
                         </div>
                       </div>
 
-                      {/* DYNAMIC LINKEDIN & NAUKRI JOB MARKET DEMAND & INTERNSHIPS */}
+                      {/* STRATEGIC COMPETENCIES & HIRING PORTALS */}
                       <div className="scenario-market-section">
                         <div className="scenario-section-title">
-                          <span>LIVE HIRING DEMAND &amp; OPPORTUNITY PORTALS FOR THIS GOAL</span>
+                          <span>
+                            {isCareerOrEducation && domainRes.jobKeywords
+                              ? "LIVE HIRING DEMAND & OPPORTUNITY PORTALS FOR THIS GOAL"
+                              : `CORE STRATEGIC COMPETENCIES & DOMAIN MASTERY: ${domainRes.domainName.toUpperCase()}`}
+                          </span>
                         </div>
                         <div className="market-intel-banner">
                           <div className="market-intel-header">
@@ -1061,45 +1410,47 @@ export function AIStudioPage() {
                               </span>
                             ))}
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-                            <span style={{ fontSize: 10, color: "#6e675c" }}>
-                              Live Search Queries for &quot;{domainRes.jobKeywords}&quot;:
-                            </span>
-                            <div className="portal-links-wrap">
-                              <a
-                                href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainRes.jobKeywords)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="portal-link-btn portal-btn-linkedin"
-                              >
-                                LinkedIn Jobs <ExternalLink size={11} />
-                              </a>
-                              <a
-                                href={`https://www.naukri.com/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-jobs`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="portal-link-btn portal-btn-naukri"
-                              >
-                                Naukri Roles <ExternalLink size={11} />
-                              </a>
-                              <a
-                                href={`https://internshala.com/internships/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-internship`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="portal-link-btn portal-btn-internshala"
-                              >
-                                Internshala <ExternalLink size={11} />
-                              </a>
-                              <a
-                                href="https://wellfound.com/jobs"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="portal-link-btn portal-btn-wellfound"
-                              >
-                                Wellfound <ExternalLink size={11} />
-                              </a>
+                          {Boolean(isCareerOrEducation && domainRes.jobKeywords && domainRes.jobKeywords.trim().length > 0) && (
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginTop: 8, paddingTop: 8, borderTop: "1px dashed #e6decb" }}>
+                              <span style={{ fontSize: 10, color: "#6e675c" }}>
+                                Live Search Queries for &quot;{domainRes.jobKeywords}&quot;:
+                              </span>
+                              <div className="portal-links-wrap">
+                                <a
+                                  href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainRes.jobKeywords)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="portal-link-btn portal-btn-linkedin"
+                                >
+                                  LinkedIn Jobs <ExternalLink size={11} />
+                                </a>
+                                <a
+                                  href={`https://www.naukri.com/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-jobs`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="portal-link-btn portal-btn-naukri"
+                                >
+                                  Naukri Roles <ExternalLink size={11} />
+                                </a>
+                                <a
+                                  href={`https://internshala.com/internships/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-internship`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="portal-link-btn portal-btn-internshala"
+                                >
+                                  Internshala <ExternalLink size={11} />
+                                </a>
+                                <a
+                                  href="https://wellfound.com/jobs"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="portal-link-btn portal-btn-wellfound"
+                                >
+                                  Wellfound <ExternalLink size={11} />
+                                </a>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       </div>
 

@@ -32,6 +32,11 @@ export interface PublicUser {
     id: string;
     name: string;
     email: string;
+    profilePicture?: string;
+    authProvider?: "local" | "google" | "github";
+    googleId?: string;
+    githubId?: string;
+    emailVerified?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }

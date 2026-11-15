@@ -3,7 +3,12 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IUser extends Document {
     name: string;
     email: string;
-    password: string;
+    password?: string;
+    googleId?: string;
+    githubId?: string;
+    profilePicture?: string;
+    authProvider: "local" | "google" | "github";
+    emailVerified: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -15,7 +20,7 @@ const userSchema = new Schema<IUser>(
             required: [true, "Name is required"],
             trim: true,
             minlength: [2, "Name must be at least 2 characters"],
-            maxlength: [50, "Name cannot exceed 50 characters"],
+            maxlength: [100, "Name cannot exceed 100 characters"],
         },
 
         email: {
@@ -33,9 +38,42 @@ const userSchema = new Schema<IUser>(
 
         password: {
             type: String,
-            required: [true, "Password is required"],
+            required: function (this: IUser) {
+                return this.authProvider === "local" && !this.googleId && !this.githubId;
+            },
             minlength: [6, "Password must be at least 6 characters"],
             select: false,
+        },
+
+        googleId: {
+            type: String,
+            sparse: true,
+            unique: true,
+            trim: true,
+        },
+
+        githubId: {
+            type: String,
+            sparse: true,
+            unique: true,
+            trim: true,
+        },
+
+        profilePicture: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+
+        authProvider: {
+            type: String,
+            enum: ["local", "google", "github"],
+            default: "local",
+        },
+
+        emailVerified: {
+            type: Boolean,
+            default: false,
         },
     },
     {

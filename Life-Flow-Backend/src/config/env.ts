@@ -40,6 +40,28 @@ const envSchema = z.object({
         .string()
         .optional()
         .default("gpt-4o-mini"),
+    GOOGLE_CLIENT_ID: z
+        .string()
+        .optional()
+        .default(""),
+    GOOGLE_CLIENT_SECRET: z
+        .string()
+        .optional()
+        .default(""),
+    GOOGLE_CALLBACK_URL: z
+        .string()
+        .default("http://localhost:5000/api/auth/google/callback"),
+    GITHUB_CLIENT_ID: z
+        .string()
+        .optional()
+        .default(""),
+    GITHUB_CLIENT_SECRET: z
+        .string()
+        .optional()
+        .default(""),
+    GITHUB_CALLBACK_URL: z
+        .string()
+        .default("http://localhost:5000/api/auth/github/callback"),
 });
 
 const parseEnv = () => {

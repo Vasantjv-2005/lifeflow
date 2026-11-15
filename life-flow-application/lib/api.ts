@@ -152,7 +152,22 @@ export type User = {
   _id?: string
   name: string
   email: string
+  profilePicture?: string
+  authProvider?: "local" | "google" | "github"
+  googleId?: string
+  githubId?: string
+  emailVerified?: boolean
   createdAt?: string
+}
+
+export const getGoogleAuthUrl = (promptSelect: boolean = true) => {
+  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  return `${base}/auth/google${promptSelect ? "?prompt=select_account" : ""}`
+}
+
+export const getGithubAuthUrl = () => {
+  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  return `${base}/auth/github`
 }
 
 // ==================== AUTH API ====================

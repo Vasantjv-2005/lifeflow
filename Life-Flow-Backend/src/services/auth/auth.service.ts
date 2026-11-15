@@ -29,6 +29,9 @@ const toPublicUser = (user: IUser): PublicUser => ({
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    profilePicture: user.profilePicture || "",
+    authProvider: user.authProvider || "local",
+    emailVerified: !!user.emailVerified,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
 });
@@ -89,6 +92,10 @@ export const loginUser = async (
 
     if (!user) {
         throw new AppError("Invalid email or password.", 401);
+    }
+
+    if (!user.password) {
+        throw new AppError("This account uses Google Sign-In. Please sign in with Google.", 401);
     }
 
     const passwordMatches = await comparePassword(

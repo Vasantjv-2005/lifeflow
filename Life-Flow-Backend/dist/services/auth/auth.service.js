@@ -17,6 +17,9 @@ const toPublicUser = (user) => ({
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    profilePicture: user.profilePicture || "",
+    authProvider: user.authProvider || "local",
+    emailVerified: !!user.emailVerified,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
 });
@@ -61,6 +64,9 @@ const loginUser = async (input) => {
     }).select("+password");
     if (!user) {
         throw new error_middleware_1.AppError("Invalid email or password.", 401);
+    }
+    if (!user.password) {
+        throw new error_middleware_1.AppError("This account uses Google Sign-In. Please sign in with Google.", 401);
     }
     const passwordMatches = await (0, password_1.comparePassword)(validatedData.password, user.password);
     if (!passwordMatches) {

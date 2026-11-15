@@ -40,7 +40,7 @@ const userSchema = new mongoose_1.Schema({
         required: [true, "Name is required"],
         trim: true,
         minlength: [2, "Name must be at least 2 characters"],
-        maxlength: [50, "Name cannot exceed 50 characters"],
+        maxlength: [100, "Name cannot exceed 100 characters"],
     },
     email: {
         type: String,
@@ -56,9 +56,37 @@ const userSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: [true, "Password is required"],
+        required: function () {
+            return this.authProvider === "local" && !this.googleId && !this.githubId;
+        },
         minlength: [6, "Password must be at least 6 characters"],
         select: false,
+    },
+    googleId: {
+        type: String,
+        sparse: true,
+        unique: true,
+        trim: true,
+    },
+    githubId: {
+        type: String,
+        sparse: true,
+        unique: true,
+        trim: true,
+    },
+    profilePicture: {
+        type: String,
+        trim: true,
+        default: "",
+    },
+    authProvider: {
+        type: String,
+        enum: ["local", "google", "github"],
+        default: "local",
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false,
     },
 }, {
     timestamps: true,
