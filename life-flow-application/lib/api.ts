@@ -305,3 +305,191 @@ export const generateScenarios = async (data: {
   const res = await api.post("/ai/generate-scenarios", data)
   return res.data.data as { scenarios: Scenario[] }
 }
+
+// ==================== FUTURE SELF INTERVIEW API ====================
+export type GeneratedFutureProfile = {
+  introduction: string
+  timeHorizon: string
+  futureLifestyle: string
+  possibleAchievements: string[]
+  developedHabits: string[]
+  challenges: string[]
+  lessons: string[]
+  possibleRegrets: string[]
+  turningPoints: string[]
+  advice: string[]
+  nextActions: string[]
+  assumptions: string[]
+  uncertainties: string[]
+}
+
+export type FutureSelfProfile = {
+  id: string
+  _id?: string
+  userId?: string
+  title: string
+  timeHorizon: "6 months" | "1 year" | "3 years" | "5 years" | "10 years"
+  lifeAreas: string[]
+  currentSituation: string
+  currentHabits?: string
+  strengths?: string
+  challenges?: string
+  responsibilities?: string
+  futureGoals: string
+  desiredIdentity?: string
+  desiredHabits?: string
+  concerns?: string
+  availableTime: string
+  monthlyBudget?: string
+  currentSkills?: string
+  availableSupport?: string
+  constraints?: string
+  generatedProfile: GeneratedFutureProfile
+  status: "active" | "archived"
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type DecisionSummary = {
+  benefits: string[]
+  risks: string[]
+  tradeOffs: string[]
+  nextSteps: string[]
+  fullSummary: string
+  spokenText: string
+  generatedAt?: string
+}
+
+export type FutureSelfInterview = {
+  id: string
+  _id?: string
+  userId?: string
+  futureSelfProfileId: string | FutureSelfProfile
+  title: string
+  status: "active" | "completed"
+  startedAt?: string
+  lastMessageAt?: string
+  decisionSummary?: DecisionSummary
+  reflectionNotes?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type FutureSelfMessage = {
+  id: string
+  _id?: string
+  userId?: string
+  interviewId: string
+  role: "user" | "assistant"
+  content: string
+  metadata?: {
+    spokenTranscript?: string
+    tokens?: number
+    suggestedQuestions?: string[]
+  }
+  createdAt?: string
+  updatedAt?: string
+}
+
+export const createFutureSelfProfile = async (data: {
+  title?: string
+  timeHorizon: "6 months" | "1 year" | "3 years" | "5 years" | "10 years"
+  lifeAreas: string[]
+  currentSituation: string
+  currentHabits?: string
+  strengths?: string
+  challenges?: string
+  responsibilities?: string
+  futureGoals: string
+  desiredIdentity?: string
+  desiredHabits?: string
+  concerns?: string
+  availableTime: string
+  monthlyBudget?: string
+  currentSkills?: string
+  availableSupport?: string
+  constraints?: string
+}): Promise<FutureSelfProfile> => {
+  const res = await api.post("/future-self/profiles", data)
+  return normalizeDoc(res.data.data.profile) as FutureSelfProfile
+}
+
+export const getFutureSelfProfiles = async (): Promise<FutureSelfProfile[]> => {
+  const res = await api.get("/future-self/profiles")
+  const list = res.data.data?.profiles || []
+  return list.map((item: Record<string, unknown>) => normalizeDoc(item) as FutureSelfProfile)
+}
+
+export const getFutureSelfProfile = async (id: string): Promise<FutureSelfProfile> => {
+  const res = await api.get(`/future-self/profiles/${id}`)
+  return normalizeDoc(res.data.data.profile) as FutureSelfProfile
+}
+
+export const deleteFutureSelfProfile = async (id: string) => {
+  return (await api.delete(`/future-self/profiles/${id}`)).data
+}
+
+export const createFutureSelfInterview = async (data: {
+  futureSelfProfileId: string
+  title?: string
+}): Promise<{ interview: FutureSelfInterview; openingMessage: FutureSelfMessage }> => {
+  const res = await api.post("/future-self/interviews", data)
+  return {
+    interview: normalizeDoc(res.data.data.interview) as FutureSelfInterview,
+    openingMessage: normalizeDoc(res.data.data.openingMessage) as FutureSelfMessage,
+  }
+}
+
+export const getFutureSelfInterviews = async (
+  page = 1,
+  limit = 20
+): Promise<{ interviews: FutureSelfInterview[]; total: number; page: number; totalPages: number }> => {
+  const res = await api.get(`/future-self/interviews?page=${page}&limit=${limit}`)
+  const rawList = res.data.data?.interviews || []
+  const interviews = rawList.map((item: Record<string, unknown>) => normalizeDoc(item) as FutureSelfInterview)
+  return {
+    interviews,
+    total: res.data.data?.total || 0,
+    page: res.data.data?.page || 1,
+    totalPages: res.data.data?.totalPages || 1,
+  }
+}
+
+export const getFutureSelfInterview = async (id: string): Promise<FutureSelfInterview> => {
+  const res = await api.get(`/future-self/interviews/${id}`)
+  return normalizeDoc(res.data.data.interview) as FutureSelfInterview
+}
+
+export const getFutureSelfMessages = async (interviewId: string): Promise<FutureSelfMessage[]> => {
+  const res = await api.get(`/future-self/interviews/${interviewId}/messages`)
+  const list = res.data.data?.messages || []
+  return list.map((item: Record<string, unknown>) => normalizeDoc(item) as FutureSelfMessage)
+}
+
+export const sendFutureSelfMessage = async (
+  interviewId: string,
+  content: string
+): Promise<{ userMessage: FutureSelfMessage; assistantMessage: FutureSelfMessage }> => {
+  const res = await api.post(`/future-self/interviews/${interviewId}/messages`, { content })
+  return {
+    userMessage: normalizeDoc(res.data.data.userMessage) as FutureSelfMessage,
+    assistantMessage: normalizeDoc(res.data.data.assistantMessage) as FutureSelfMessage,
+  }
+}
+
+export const completeFutureSelfInterview = async (interviewId: string): Promise<FutureSelfInterview> => {
+  const res = await api.post(`/future-self/interviews/${interviewId}/complete`)
+  return normalizeDoc(res.data.data.interview) as FutureSelfInterview
+}
+
+export const updateFutureSelfReflection = async (
+  interviewId: string,
+  reflectionNotes: string
+): Promise<FutureSelfInterview> => {
+  const res = await api.patch(`/future-self/interviews/${interviewId}/reflection`, { reflectionNotes })
+  return normalizeDoc(res.data.data.interview) as FutureSelfInterview
+}
+
+export const deleteFutureSelfInterview = async (interviewId: string) => {
+  return (await api.delete(`/future-self/interviews/${interviewId}`)).data
+}

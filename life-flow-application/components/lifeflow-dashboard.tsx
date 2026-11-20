@@ -36,6 +36,7 @@ const navigation = [
   { label: "My decisions", href: "/decisions", icon: ListTodo },
   { label: "Simulations", href: "/simulations", icon: GitBranch },
   { label: "AI studio", href: "/ai-studio", icon: Sparkles },
+  { label: "Future Self", href: "/workspace/future-self", icon: Compass },
 ]
 
 const statusStyle: Record<string, string> = {
@@ -534,4 +535,4 @@ export function PageFrame({ children }: { children: React.ReactNode }) {
   return <AppShell>{children}</AppShell>
 }
 
-export { PageHeading }
+export { PageHeading, AppShell, PageFrame as DashboardLayout }
