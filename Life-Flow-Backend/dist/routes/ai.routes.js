@@ -9,4 +9,6 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.authMiddleware);
 // POST /api/ai/generate-scenarios (rate-limited)
 router.post("/generate-scenarios", rateLimit_middleware_1.aiRateLimiter, ai_controller_1.generateScenariosController);
+// GET /api/ai/career-jobs (research & refresh opportunities across LinkedIn, Naukri, Wellfound)
+router.get("/career-jobs", ai_controller_1.getCareerJobsController);
 exports.default = router;

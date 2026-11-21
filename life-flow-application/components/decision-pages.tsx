@@ -10,15 +10,18 @@ import { z } from "zod"
 import {
   ArrowRight,
   BookOpen,
+  Bot,
   Briefcase,
   Check,
   ChevronDown,
   CircleHelp,
   Clock3,
+  Columns3,
   Database,
   ExternalLink,
   GraduationCap,
   Layers,
+  MessageSquare,
   Plus,
   Search,
   ShieldCheck,
@@ -29,6 +32,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { PageFrame, PageHeading } from "@/components/lifeflow-dashboard"
+import { ScenarioComparisonDashboardView } from "@/components/scenario-comparison-dashboard"
+import { AIDecisionAdvisorChat } from "@/components/ai-decision-advisor-chat"
+import { CareerScenarioStudioView } from "@/components/career-scenario-views"
 import {
   createDecision,
   updateDecision,
@@ -38,13 +44,17 @@ import {
   getDecisions,
   type Decision,
   type Scenario,
+  type DecisionOverview,
 } from "@/lib/api"
 
 const schema = z.object({
-  title: z.string().min(2, "Give this decision a descriptive title (at least 2 characters)."),
+  title: z
+    .string()
+    .min(2, "Give this decision a descriptive title (at least 2 characters).")
+    .max(500, "Decision title cannot exceed 500 characters."),
   category: z.string().min(1, "Please select a category."),
-  goal: z.string().min(2, "Describe the outcome or goal you hope to achieve."),
-  currentSituation: z.string().optional(),
+  goal: z.string().max(2000, "Goal cannot exceed 2000 characters."),
+  currentSituation: z.string().max(3000, "Current situation cannot exceed 3000 characters.").optional(),
   timeAvailable: z.string().optional(),
   budget: z.string().optional(),
 })
@@ -104,8 +114,10 @@ export function DecisionsPage() {
       form.reset()
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg || "Could not save decision. Please check backend connection.")
+      const errorData = (err as { response?: { data?: { message?: string; errors?: Array<{ message: string; path: string[] }> } } })?.response?.data
+      const specificError = errorData?.errors?.[0]?.message
+      const msg = specificError || errorData?.message || "Could not save decision. Please check backend connection."
+      toast.error(msg)
     },
   })
 
@@ -250,7 +262,7 @@ export function DecisionsPage() {
             <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
               <label className="form-label">
                 Decision Title
-                <input {...form.register("title")} placeholder="e.g. Relocate to a new city for work" />
+                <input {...form.register("title")} maxLength={500} placeholder="e.g. Relocate to a new city for work" />
                 {form.formState.errors.title && (
                   <span className="form-error">{form.formState.errors.title.message}</span>
                 )}
@@ -275,6 +287,7 @@ export function DecisionsPage() {
                 <textarea
                   {...form.register("goal")}
                   rows={2}
+                  maxLength={2000}
                   placeholder="What does a successful resolution look like?"
                 />
                 {form.formState.errors.goal && (
@@ -624,6 +637,46 @@ function getDomainResources(title: string, goal: string, category: string): Doma
     }
   }
 
+  // 6B. UI/UX & Product Design Track
+  if (/\b(ui|ux|ui\/ux|figma|product design|wireframe|wireframes|prototype|prototyping|user experience|interface)\b/i.test(q)) {
+    return {
+      domainName: "UI/UX & Product Design",
+      marketSummary: "Design teams look for beginners who can use Figma, talk to users to understand simple problems, sketch paper wireframes, and build clean clickable prototypes.",
+      skills: ["Figma Tools (Frames & Components)", "User Interviews & Problem Finding", "Paper Wireframing", "Clickable Mobile Prototypes", "Usability Testing with 3 Users", "2 Portfolio Case Studies"],
+      courses: [
+        {
+          provider: "Figma Official",
+          badge: "100% Free",
+          title: "Figma for Beginners Series",
+          desc: "Official short video tutorials showing how to draw buttons, cards, mobile screens, and clickable prototypes.",
+          url: "https://www.youtube.com/playlist?list=PLXDU_eVOJTx7QHLShNqIXL1Cgbxj7HlNn",
+        },
+        {
+          provider: "Google on Coursera",
+          badge: "Free Audit",
+          title: "Google UX Design Professional Certificate",
+          desc: "Complete foundational course on user research, empathy maps, wireframing, and testing design prototypes.",
+          url: "https://www.coursera.org/professional-certificates/google-ux-design",
+        },
+        {
+          provider: "Nielsen Norman Group",
+          badge: "Gold Standard",
+          title: "UX Basics & Usability Articles",
+          desc: "Clear, practical articles on how to test designs with real people and make navigation easy to understand.",
+          url: "https://www.nngroup.com/articles/",
+        },
+        {
+          provider: "freeCodeCamp",
+          badge: "Open Guide",
+          title: "UI Design Fundamentals Handbook",
+          desc: "Practical handbook on color contrast, readable font sizes, spacing, and mobile screen hierarchy.",
+          url: "https://www.freecodecamp.org/news/ui-design-handbook/",
+        },
+      ],
+      jobKeywords: isCareerOrEducation ? "UI UX Designer Intern" : "",
+    }
+  }
+
   // 7. Career Tech Tracks (Checked with strict word boundaries \b)
   if (/\b(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)\b/i.test(q)) {
     return {
@@ -869,10 +922,20 @@ export function AIStudioPage() {
   const [category, setCategory] = useState("Career")
   const [goal, setGoal] = useState("")
   const [scenarios, setScenarios] = useState<Scenario[]>([])
+  const [decisionOverview, setDecisionOverview] = useState<DecisionOverview | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savingDecision, setSavingDecision] = useState(false)
   const [context, setContext] = useState("")
+  const [activeStudioTab, setActiveStudioTab] = useState<"scenarios" | "compare" | "advisor">("scenarios")
+  const [careerStudioViewMode, setCareerStudioViewMode] = useState<"career" | "classic">("career")
+
+  const hasCareerData = useMemo(() => {
+    return (
+      (category || "").toLowerCase().includes("career") ||
+      scenarios.some((s) => s.learningRoadmap || s.interviewPreparation || s.opportunitiesAndBackup)
+    )
+  }, [category, scenarios])
 
   const domainRes = useMemo(
     () => getDomainResources(decisionTitle, goal, category),
@@ -893,6 +956,7 @@ export function AIStudioPage() {
     setCategory(d.category || "Career")
     setGoal(d.goal || "")
     setContext(d.currentSituation || "")
+    setDecisionOverview(null)
     toast.success(`Loaded "${d.title}" from MongoDB`)
   }
 
@@ -903,6 +967,7 @@ export function AIStudioPage() {
     setGoal("")
     setContext("")
     setScenarios([])
+    setDecisionOverview(null)
     toast.info("Cleared form. Ready to define a new decision.")
   }
 
@@ -983,6 +1048,7 @@ export function AIStudioPage() {
         additionalContext: context.trim() || undefined,
       })
       setScenarios(data.scenarios || [])
+      setDecisionOverview(data.decisionOverview || null)
       toast.success("Decision saved to MongoDB & scenarios generated!")
     } catch (error: unknown) {
       const status = (error as { response?: { status?: number } }).response?.status
@@ -1282,16 +1348,193 @@ export function AIStudioPage() {
           <div className="scenario-column">
             {scenarios.length ? (
               <>
-                <div className="scenario-heading">
+                <div className="scenario-heading" style={{ marginBottom: 12 }}>
                   <div>
-                    <span className="eyebrow">VALIDATED SCENARIO MODELS</span>
-                    <h2>Generated Scenarios</h2>
+                    <span className="eyebrow">DECISION SCENARIO STUDIO</span>
+                    <h2>Future Paths &amp; Guidance</h2>
                   </div>
                   <button className="button button-outline" onClick={saveScenarios} disabled={saving}>
                     <Check size={15} /> {saving ? "Saving to MongoDB..." : "Save All to Database"}
                   </button>
                 </div>
-                <div className="scenario-results">
+
+                {/* SCENARIO STUDIO TABS */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginBottom: 18,
+                    borderBottom: "1px solid #ebd9be",
+                    paddingBottom: 10,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setActiveStudioTab("scenarios")}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: activeStudioTab === "scenarios" ? "#24201c" : "#f5f0e8",
+                      color: activeStudioTab === "scenarios" ? "#ffffff" : "#4a453e",
+                      border: "1px solid " + (activeStudioTab === "scenarios" ? "#24201c" : "#e5dfd5"),
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <Layers size={14} /> Detailed Scenarios
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStudioTab("compare")}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: activeStudioTab === "compare" ? "#24201c" : "#f5f0e8",
+                      color: activeStudioTab === "compare" ? "#ffffff" : "#4a453e",
+                      border: "1px solid " + (activeStudioTab === "compare" ? "#24201c" : "#e5dfd5"),
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <Columns3 size={14} /> Compare Scenarios
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveStudioTab("advisor")}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: activeStudioTab === "advisor" ? "#24201c" : "#f5f0e8",
+                      color: activeStudioTab === "advisor" ? "#ffffff" : "#4a453e",
+                      border: "1px solid " + (activeStudioTab === "advisor" ? "#24201c" : "#e5dfd5"),
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <Bot size={14} /> Ask AI Decision Advisor
+                  </button>
+                </div>
+
+                {/* TAB 1: SCENARIO COMPARISON DASHBOARD */}
+                {activeStudioTab === "compare" && (
+                  <div style={{ marginBottom: 24 }}>
+                    <ScenarioComparisonDashboardView
+                      decisionTitle={decisionTitle}
+                      category={category}
+                      goal={goal}
+                      scenarios={scenarios}
+                      onViewFullScenario={() => setActiveStudioTab("scenarios")}
+                    />
+                  </div>
+                )}
+
+                {/* TAB 2: AI DECISION ADVISOR CHAT */}
+                {activeStudioTab === "advisor" && (
+                  <div style={{ marginBottom: 24 }}>
+                    <AIDecisionAdvisorChat
+                      decisionId={selectedDecisionId}
+                      decisionTitle={decisionTitle}
+                      category={category}
+                      goal={goal}
+                      scenarios={scenarios}
+                    />
+                  </div>
+                )}
+
+                {/* TAB 3: DETAILED ROADMAPS & SCENARIOS */}
+                {activeStudioTab === "scenarios" && (
+                  <div>
+                    {hasCareerData && (
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
+                        <button
+                          type="button"
+                          onClick={() => setCareerStudioViewMode((m) => (m === "career" ? "classic" : "career"))}
+                          style={{
+                            background: "#fbf8f2",
+                            border: "1px solid #ebd9be",
+                            borderRadius: 6,
+                            fontSize: 11.5,
+                            padding: "5px 12px",
+                            color: "#8c6e3b",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                          }}
+                        >
+                          <Briefcase size={13} />
+                          {careerStudioViewMode === "career" ? "Switch to Standard Cards View" : "Switch to 3-Part Career Studio View"}
+                        </button>
+                      </div>
+                    )}
+
+                    {hasCareerData && careerStudioViewMode === "career" ? (
+                      <CareerScenarioStudioView
+                        decisionTitle={decisionTitle}
+                        category={category}
+                        goal={goal}
+                        scenarios={scenarios}
+                      />
+                    ) : (
+                      <div className="scenario-results">
+                  {/* 1. YOUR DECISION & 2. WHAT WE KNOW OVERVIEW */}
+                  <div style={{ background: "#ffffff", border: "1px solid #ebd9be", borderRadius: 10, padding: 18, marginBottom: 20 }}>
+                    <div style={{ marginBottom: 14 }}>
+                      <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: "#8c6e3b", display: "block", marginBottom: 4 }}>
+                        1. YOUR DECISION
+                      </span>
+                      <p style={{ fontSize: 14, color: "#282521", fontWeight: 600, margin: 0 }}>
+                        {decisionOverview?.yourDecision || `You want to achieve: "${goal}". You are deciding: "${decisionTitle}".`}
+                      </p>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: 10, letterSpacing: 1, fontWeight: 700, color: "#8c6e3b", display: "block", marginBottom: 4 }}>
+                        2. WHAT WE KNOW &amp; CONSTRAINTS
+                      </span>
+                      <p style={{ fontSize: 13, color: "#5c554b", margin: 0, lineHeight: 1.5 }}>
+                        {decisionOverview?.whatWeKnow || (context ? `Current situation: ${context}` : "Starting from your current everyday schedule.")}
+                      </p>
+                      {decisionOverview?.assumptions && decisionOverview.assumptions.length > 0 && (
+                        <div style={{ marginTop: 8 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#776f63" }}>Key Assumptions:</span>
+                          <ul style={{ margin: "4px 0 0 16px", padding: 0, fontSize: 12, color: "#6f685d" }}>
+                            {decisionOverview.assumptions.map((item, aIdx) => (
+                              <li key={aIdx}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {decisionOverview?.missingDetails && decisionOverview.missingDetails.length > 0 && (
+                        <div style={{ marginTop: 8 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#776f63" }}>Helpful details to keep in mind:</span>
+                          <ul style={{ margin: "4px 0 0 16px", padding: 0, fontSize: 12, color: "#6f685d" }}>
+                            {decisionOverview.missingDetails.map((item, mIdx) => (
+                              <li key={mIdx}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 3, 4, 5. THREE SCENARIOS (OPTIMISTIC, REALISTIC, PESSIMISTIC) */}
                   {scenarios.map((scenario, index) => (
                     <article className={`scenario-box scenario-box-${scenario.type}`} key={`${scenario.type}-${index}`}>
                       <div className="scenario-box-header">
@@ -1301,17 +1544,67 @@ export function AIStudioPage() {
                           </span>
                           <h3>{scenario.name}</h3>
                         </div>
-                        <span className={`risk-pill risk-pill-${scenario.riskLevel}`}>
-                          {scenario.riskLevel} Risk
-                        </span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {scenario.expectedTimeline && (
+                            <span style={{ fontSize: 11, background: "#fbf8f2", border: "1px solid #ebd9be", color: "#8c6e3b", padding: "2px 8px", borderRadius: 4, fontWeight: 600 }}>
+                              {scenario.expectedTimeline}
+                            </span>
+                          )}
+                          <span className={`risk-pill risk-pill-${scenario.riskLevel}`}>
+                            {scenario.riskLevel} Risk
+                          </span>
+                        </div>
                       </div>
 
                       <p className="scenario-box-summary">{scenario.description}</p>
 
+                      {/* Main Advantages, Challenges, Resources Grid */}
+                      {(Boolean(scenario.advantages?.length) || Boolean(scenario.challenges?.length) || Boolean(scenario.requiredResources?.length)) && (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, margin: "14px 0" }}>
+                          {Boolean(scenario.advantages?.length) && (
+                            <div style={{ background: "#f8fbf6", border: "1px solid #dceed6", borderRadius: 8, padding: 12 }}>
+                              <strong style={{ fontSize: 11, color: "#2e7d32", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                Main Advantages
+                              </strong>
+                              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#3f5e3b", lineHeight: 1.5 }}>
+                                {scenario.advantages?.map((adv, idx) => (
+                                  <li key={idx} style={{ marginBottom: 4 }}>{adv}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {Boolean(scenario.challenges?.length) && (
+                            <div style={{ background: "#fef8f6", border: "1px solid #f6ded5", borderRadius: 8, padding: 12 }}>
+                              <strong style={{ fontSize: 11, color: "#c62828", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                Main Challenges
+                              </strong>
+                              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#6e3f36", lineHeight: 1.5 }}>
+                                {scenario.challenges?.map((chl, idx) => (
+                                  <li key={idx} style={{ marginBottom: 4 }}>{chl}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {Boolean(scenario.requiredResources?.length) && (
+                            <div style={{ background: "#fbfaf8", border: "1px solid #ece4d6", borderRadius: 8, padding: 12 }}>
+                              <strong style={{ fontSize: 11, color: "#8c6e3b", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                Required Resources
+                              </strong>
+                              <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "#5c503b", lineHeight: 1.5 }}>
+                                {scenario.requiredResources?.map((res, idx) => (
+                                  <li key={idx} style={{ marginBottom: 4 }}>{res}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Phased Action Roadmap */}
                       {scenario.steps?.length ? (
                         <div className="scenario-steps-container">
                           <div className="scenario-section-title">
-                            <span>PHASED ROADMAP & ACTION STEPS</span>
+                            <span>PHASED ROADMAP &amp; ACTION STEPS</span>
                           </div>
                           <div className="scenario-steps-timeline">
                             {scenario.steps.map((step) => (
@@ -1327,7 +1620,16 @@ export function AIStudioPage() {
                                       <span className="step-timeframe-tag">{step.timeframe}</span>
                                     )}
                                   </div>
-                                  <p className="step-text">{step.description}</p>
+                                  {(step.whatToDo || step.howToDoIt || step.targetResult || step.completionCheck) ? (
+                                    <div style={{ display: "grid", gap: 6, marginTop: 8, fontSize: 12, color: "#443f38", lineHeight: 1.5 }}>
+                                      {step.whatToDo && <div><strong>What to do:</strong> {step.whatToDo}</div>}
+                                      {step.howToDoIt && <div><strong>How to do it:</strong> {step.howToDoIt}</div>}
+                                      {step.targetResult && <div><strong>Target to aim for:</strong> {step.targetResult}</div>}
+                                      {step.completionCheck && <div><strong>How to check:</strong> {step.completionCheck}</div>}
+                                    </div>
+                                  ) : (
+                                    <p className="step-text">{step.description}</p>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -1335,6 +1637,7 @@ export function AIStudioPage() {
                         </div>
                       ) : null}
 
+                      {/* Projected Outcomes */}
                       {scenario.outcomes?.length ? (
                         <div className="scenario-outcomes-container">
                           <div className="scenario-section-title">
@@ -1345,12 +1648,26 @@ export function AIStudioPage() {
                               <div className="outcome-card" key={`${outcome.title}-${oIdx}`}>
                                 <div className="outcome-header">
                                   <span className="outcome-title">{outcome.title}</span>
-                                  {typeof outcome.probability === "number" && (
+                                  {outcome.likelihood ? (
+                                    <span className="probability-tag" style={{ background: "#fbf6ec", color: "#8c6e3b", borderColor: "#e8dcbe", fontSize: 11 }}>
+                                      {outcome.likelihood}
+                                    </span>
+                                  ) : typeof outcome.probability === "number" ? (
                                     <span className="probability-tag">{outcome.probability}% Probability</span>
-                                  )}
+                                  ) : null}
                                 </div>
                                 {outcome.description && (
                                   <p className="outcome-desc">{outcome.description}</p>
+                                )}
+                                {outcome.userControls && (
+                                  <div style={{ fontSize: 11, color: "#2e7d32", marginTop: 4 }}>
+                                    <strong>What you control:</strong> {outcome.userControls}
+                                  </div>
+                                )}
+                                {outcome.dependsOnOthersOrMarket && (
+                                  <div style={{ fontSize: 11, color: "#6e675c", marginTop: 2 }}>
+                                    <strong>Depends on market / others:</strong> {outcome.dependsOnOthersOrMarket}
+                                  </div>
                                 )}
                               </div>
                             ))}
@@ -1358,124 +1675,122 @@ export function AIStudioPage() {
                         </div>
                       ) : null}
 
-                      {/* DYNAMIC CURATED BEST COURSES & RESOURCE LINKS FOR THIS GOAL */}
-                      <div className="scenario-market-section">
-                        <div className="scenario-section-title">
-                          <span>TOP RECOMMENDED COURSES &amp; RESOURCE LINKS: {domainRes.domainName.toUpperCase()}</span>
-                        </div>
-                        <div className="course-cards-grid">
-                          {domainRes.courses.map((course: { provider: string; badge: string; title: string; desc: string; url: string }, cIdx: number) => (
-                            <a
-                              key={`${course.title}-${cIdx}`}
-                              href={course.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="course-card"
-                            >
-                              <div className="course-card-top">
-                                <span className="course-provider-badge">{course.provider}</span>
-                                <span className="course-free-badge">{course.badge}</span>
-                              </div>
-                              <h4 className="course-title">{course.title}</h4>
-                              <p className="course-desc">{course.desc}</p>
-                              <span className="course-link-btn">
-                                Open Curriculum <ExternalLink size={12} />
-                              </span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* STRATEGIC COMPETENCIES & HIRING PORTALS */}
-                      <div className="scenario-market-section">
-                        <div className="scenario-section-title">
-                          <span>
-                            {isCareerOrEducation && domainRes.jobKeywords
-                              ? "LIVE HIRING DEMAND & OPPORTUNITY PORTALS FOR THIS GOAL"
-                              : `CORE STRATEGIC COMPETENCIES & DOMAIN MASTERY: ${domainRes.domainName.toUpperCase()}`}
-                          </span>
-                        </div>
-                        <div className="market-intel-banner">
-                          <div className="market-intel-header">
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <TrendingUp size={16} color="#8c6e3b" />
-                              <strong style={{ fontSize: 12, color: "#312d26" }}>{domainRes.domainName}</strong>
-                            </div>
-                            <span style={{ fontSize: 10, color: "#777065" }}>{domainRes.marketSummary}</span>
+                      {/* Backup Plan */}
+                      {scenario.backupPlan && (
+                        <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 8, background: "#fcf8f2", border: "1px solid #e8dcbe", fontSize: 12, color: "#6b5428", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                          <ShieldCheck size={18} style={{ flexShrink: 0, marginTop: 1, color: "#8c6e3b" }} />
+                          <div>
+                            <strong>Backup Plan:</strong> {scenario.backupPlan}
                           </div>
-                          <div className="skills-pill-group">
-                            {domainRes.skills.map((skill: string) => (
-                              <span className="skill-pill" key={skill}>
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                          {Boolean(isCareerOrEducation && domainRes.jobKeywords && domainRes.jobKeywords.trim().length > 0) && (
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginTop: 8, paddingTop: 8, borderTop: "1px dashed #e6decb" }}>
-                              <span style={{ fontSize: 10, color: "#6e675c" }}>
-                                Live Search Queries for &quot;{domainRes.jobKeywords}&quot;:
-                              </span>
-                              <div className="portal-links-wrap">
-                                <a
-                                  href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainRes.jobKeywords)}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="portal-link-btn portal-btn-linkedin"
-                                >
-                                  LinkedIn Jobs <ExternalLink size={11} />
-                                </a>
-                                <a
-                                  href={`https://www.naukri.com/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-jobs`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="portal-link-btn portal-btn-naukri"
-                                >
-                                  Naukri Roles <ExternalLink size={11} />
-                                </a>
-                                <a
-                                  href={`https://internshala.com/internships/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-internship`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="portal-link-btn portal-btn-internshala"
-                                >
-                                  Internshala <ExternalLink size={11} />
-                                </a>
-                                <a
-                                  href="https://wellfound.com/jobs"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="portal-link-btn portal-btn-wellfound"
-                                >
-                                  Wellfound <ExternalLink size={11} />
-                                </a>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* SCENARIO SPECIFIC STRATEGY */}
-                      {scenario.type === "optimistic" && (
-                        <div style={{ marginTop: 12, padding: "11px 15px", borderRadius: 8, background: "#edf5ea", border: "1px solid #d4e7d0", fontSize: 11, color: "#436c3e", display: "flex", alignItems: "center", gap: 8 }}>
-                          <Sparkles size={16} />
-                          <span><strong>Fast-Track Sprint Strategy:</strong> Aggressive focus on shipping 2-3 tangible, verifiable deliverables and building daily proof of work for {decisionTitle || goal || "this goal"}.</span>
-                        </div>
-                      )}
-                      {scenario.type === "realistic" && (
-                        <div style={{ marginTop: 12, padding: "11px 15px", borderRadius: 8, background: "#fbf6ec", border: "1px solid #f0e2ca", fontSize: 11, color: "#8c6e3b", display: "flex", alignItems: "center", gap: 8 }}>
-                          <Clock3 size={16} />
-                          <span><strong>Realistic Pacing:</strong> Dedicate 15-20 hours weekly. Master foundational methodologies thoroughly before broad applications or outreach.</span>
-                        </div>
-                      )}
-                      {scenario.type === "pessimistic" && (
-                        <div style={{ marginTop: 12, padding: "11px 15px", borderRadius: 8, background: "#fdf1ed", border: "1px solid #f6d6cd", fontSize: 11, color: "#9e4e37", display: "flex", alignItems: "center", gap: 8 }}>
-                          <ShieldCheck size={16} />
-                          <span><strong>Risk-Managed Contingency:</strong> If target milestones face market delays, secure bridge opportunities or internships to gain verified experience.</span>
                         </div>
                       )}
                     </article>
                   ))}
+
+                  {/* 7. DYNAMIC CURATED BEST COURSES & RESOURCE LINKS FOR THIS GOAL (RENDERED ONCE) */}
+                  <div className="scenario-market-section" style={{ marginTop: 24 }}>
+                    <div className="scenario-section-title">
+                      <span>TOP RECOMMENDED COURSES &amp; RESOURCE LINKS: {domainRes.domainName.toUpperCase()}</span>
+                    </div>
+                    <div className="course-cards-grid">
+                      {domainRes.courses.map((course: { provider: string; badge: string; title: string; desc: string; url: string }, cIdx: number) => (
+                        <a
+                          key={`${course.title}-${cIdx}`}
+                          href={course.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="course-card"
+                        >
+                          <div className="course-card-top">
+                            <span className="course-provider-badge">{course.provider}</span>
+                            <span className="course-free-badge">{course.badge}</span>
+                          </div>
+                          <h4 className="course-title">{course.title}</h4>
+                          <p className="course-desc">{course.desc}</p>
+                          <span className="course-link-btn">
+                            Open Resource <ExternalLink size={12} />
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 8. JOB & INTERNSHIP PLATFORMS (RENDERED ONCE WITH CLEAR DISCLAIMER) */}
+                  <div className="scenario-market-section" style={{ marginTop: 16 }}>
+                    <div className="scenario-section-title">
+                      <span>
+                        {isCareerOrEducation && domainRes.jobKeywords
+                          ? "OFFICIAL JOB & INTERNSHIP PLATFORMS"
+                          : `CORE SKILLS & DOMAIN CHECKLIST: ${domainRes.domainName.toUpperCase()}`}
+                      </span>
+                    </div>
+                    <div className="market-intel-banner">
+                      <div className="market-intel-header">
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <TrendingUp size={16} color="#8c6e3b" />
+                          <strong style={{ fontSize: 12, color: "#312d26" }}>{domainRes.domainName}</strong>
+                        </div>
+                        <span style={{ fontSize: 11, color: "#777065" }}>{domainRes.marketSummary}</span>
+                      </div>
+                      <div className="skills-pill-group">
+                        {domainRes.skills.map((skill: string) => (
+                          <span className="skill-pill" key={skill}>
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                      {Boolean(isCareerOrEducation && domainRes.jobKeywords && domainRes.jobKeywords.trim().length > 0) && (
+                        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px dashed #e6decb" }}>
+                          <p style={{ fontSize: 11, color: "#776f63", margin: "0 0 8px 0" }}>
+                            <em>Important note: LifeFlow provides career guidance and study roadmaps. Actual job and internship availability must be checked directly on official hiring portals.</em>
+                          </p>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                            <span style={{ fontSize: 11, color: "#6e675c", fontWeight: 500 }}>
+                              Search official platforms for &quot;{domainRes.jobKeywords}&quot;:
+                            </span>
+                            <div className="portal-links-wrap">
+                              <a
+                                href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainRes.jobKeywords)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="portal-link-btn portal-btn-linkedin"
+                              >
+                                LinkedIn Jobs <ExternalLink size={11} />
+                              </a>
+                              <a
+                                href={`https://www.naukri.com/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-jobs`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="portal-link-btn portal-btn-naukri"
+                              >
+                                Naukri Roles <ExternalLink size={11} />
+                              </a>
+                              <a
+                                href={`https://internshala.com/internships/${encodeURIComponent(domainRes.jobKeywords).replace(/%20/g, "-")}-internship`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="portal-link-btn portal-btn-internshala"
+                              >
+                                Internshala <ExternalLink size={11} />
+                              </a>
+                              <a
+                                href="https://wellfound.com/jobs"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="portal-link-btn portal-btn-wellfound"
+                              >
+                                Wellfound <ExternalLink size={11} />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
+                )}
+                </div>
+                )}
               </>
             ) : (
               <div className="scenario-placeholder">

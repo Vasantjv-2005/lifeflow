@@ -48,7 +48,37 @@ export const generateScenariosController = async (
             success: true,
             message: "Scenarios generated successfully.",
             data: {
+                decisionOverview: result.decisionOverview,
                 scenarios: result.scenarios,
+            },
+        });
+    } catch (error: unknown) {
+        next(error);
+    }
+};
+
+// GET /api/ai/career-jobs
+export const getCareerJobsController = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const role = String(req.query.role || "Software Engineer");
+        const location = req.query.location ? String(req.query.location) : undefined;
+        const skills = req.query.skills ? String(req.query.skills) : undefined;
+
+        const { getJobResearchForRole, getMarketAnalysis } = await import("../services/jobResearch.service");
+        const jobs = getJobResearchForRole(role, location, skills);
+        const marketAnalysis = getMarketAnalysis(role, skills);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                role,
+                location,
+                jobs,
+                marketAnalysis,
             },
         });
     } catch (error: unknown) {

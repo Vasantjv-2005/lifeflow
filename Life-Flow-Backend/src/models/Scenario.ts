@@ -8,6 +8,10 @@ export interface IScenarioStep {
     title: string;
     description: string;
     timeframe?: string;
+    whatToDo?: string;
+    howToDoIt?: string;
+    targetResult?: string;
+    completionCheck?: string;
 }
 
 /**
@@ -16,23 +20,35 @@ export interface IScenarioStep {
 export interface IScenarioOutcome {
     title: string;
     description: string;
+    likelihood?: string;
     probability?: number;
     impact: "low" | "medium" | "high";
+    userControls?: string;
+    dependsOnOthersOrMarket?: string;
 }
 
 /**
  * Main Scenario document interface.
  */
 export interface IScenario {
-    simulationId: Types.ObjectId;
+    simulationId?: Types.ObjectId;
+    decisionId?: Types.ObjectId;
     userId: Types.ObjectId;
     name: string;
     description?: string;
     type: "optimistic" | "realistic" | "pessimistic" | "custom";
     score?: number;
     riskLevel: "low" | "medium" | "high";
+    expectedTimeline?: string;
+    advantages?: string[];
+    challenges?: string[];
+    requiredResources?: string[];
+    backupPlan?: string;
     steps: IScenarioStep[];
     outcomes: IScenarioOutcome[];
+    learningRoadmap?: Record<string, unknown>;
+    interviewPreparation?: Record<string, unknown>;
+    opportunitiesAndBackup?: Record<string, unknown>;
     isSelected: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -68,6 +84,30 @@ const scenarioStepSchema = new Schema<IScenarioStep>(
             type: String,
             trim: true,
             maxlength: [100, "Timeframe cannot exceed 100 characters"],
+        },
+
+        whatToDo: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "What to do cannot exceed 2000 characters"],
+        },
+
+        howToDoIt: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "How to do it cannot exceed 2000 characters"],
+        },
+
+        targetResult: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "Target result cannot exceed 2000 characters"],
+        },
+
+        completionCheck: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "Completion check cannot exceed 2000 characters"],
         },
     },
     {
@@ -109,6 +149,24 @@ const scenarioOutcomeSchema = new Schema<IScenarioOutcome>(
                 message: "Invalid outcome impact",
             },
         },
+
+        likelihood: {
+            type: String,
+            trim: true,
+            maxlength: [500, "Likelihood cannot exceed 500 characters"],
+        },
+
+        userControls: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "User controls description cannot exceed 2000 characters"],
+        },
+
+        dependsOnOthersOrMarket: {
+            type: String,
+            trim: true,
+            maxlength: [2000, "Market dependencies description cannot exceed 2000 characters"],
+        },
     },
     {
         _id: false,
@@ -120,10 +178,15 @@ const scenarioOutcomeSchema = new Schema<IScenarioOutcome>(
  */
 const scenarioSchema = new Schema<IScenario>(
     {
+        decisionId: {
+            type: Schema.Types.ObjectId,
+            ref: "Decision",
+            index: true,
+        },
+
         simulationId: {
             type: Schema.Types.ObjectId,
             ref: "Simulation",
-            required: [true, "Simulation ID is required"],
             index: true,
         },
 
@@ -179,6 +242,33 @@ const scenarioSchema = new Schema<IScenario>(
             default: "medium",
         },
 
+        expectedTimeline: {
+            type: String,
+            trim: true,
+            maxlength: [200, "Timeline cannot exceed 200 characters"],
+        },
+
+        advantages: {
+            type: [String],
+            default: [],
+        },
+
+        challenges: {
+            type: [String],
+            default: [],
+        },
+
+        requiredResources: {
+            type: [String],
+            default: [],
+        },
+
+        backupPlan: {
+            type: String,
+            trim: true,
+            maxlength: [3000, "Backup plan cannot exceed 3000 characters"],
+        },
+
         steps: {
             type: [scenarioStepSchema],
             default: [],
@@ -187,6 +277,21 @@ const scenarioSchema = new Schema<IScenario>(
         outcomes: {
             type: [scenarioOutcomeSchema],
             default: [],
+        },
+
+        learningRoadmap: {
+            type: Schema.Types.Mixed,
+            required: false,
+        },
+
+        interviewPreparation: {
+            type: Schema.Types.Mixed,
+            required: false,
+        },
+
+        opportunitiesAndBackup: {
+            type: Schema.Types.Mixed,
+            required: false,
         },
 
         isSelected: {

@@ -34,6 +34,21 @@ exports.generateScenariosRequestSchema = zod_1.z.object({
         .number()
         .min(0, "Budget must be a valid non-negative number")
         .optional(),
+    skills: zod_1.z
+        .string()
+        .trim()
+        .max(2000, "Skills cannot exceed 2000 characters")
+        .optional(),
+    experience: zod_1.z
+        .string()
+        .trim()
+        .max(2000, "Experience cannot exceed 2000 characters")
+        .optional(),
+    challenges: zod_1.z
+        .string()
+        .trim()
+        .max(2000, "Challenges cannot exceed 2000 characters")
+        .optional(),
     additionalContext: zod_1.z
         .string()
         .trim()

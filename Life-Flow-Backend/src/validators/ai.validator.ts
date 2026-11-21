@@ -38,6 +38,24 @@ export const generateScenariosRequestSchema = z.object({
         .min(0, "Budget must be a valid non-negative number")
         .optional(),
 
+    skills: z
+        .string()
+        .trim()
+        .max(2000, "Skills cannot exceed 2000 characters")
+        .optional(),
+
+    experience: z
+        .string()
+        .trim()
+        .max(2000, "Experience cannot exceed 2000 characters")
+        .optional(),
+
+    challenges: z
+        .string()
+        .trim()
+        .max(2000, "Challenges cannot exceed 2000 characters")
+        .optional(),
+
     additionalContext: z
         .string()
         .trim()

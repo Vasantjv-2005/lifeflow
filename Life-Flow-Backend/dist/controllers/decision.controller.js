@@ -26,9 +26,11 @@ const createDecision = async (req, res, next) => {
         }
         const validation = decision_validator_1.createDecisionSchema.safeParse(req.body);
         if (!validation.success) {
+            const firstIssue = validation.error.issues[0];
+            const errorMessage = firstIssue?.message || "Invalid decision data.";
             res.status(400).json({
                 success: false,
-                message: "Invalid decision data.",
+                message: errorMessage,
                 errors: validation.error.issues,
             });
             return;
@@ -132,9 +134,11 @@ const updateDecision = async (req, res, next) => {
         }
         const validation = decision_validator_1.updateDecisionSchema.safeParse(req.body);
         if (!validation.success) {
+            const firstIssue = validation.error.issues[0];
+            const errorMessage = firstIssue?.message || "Invalid decision update data.";
             res.status(400).json({
                 success: false,
-                message: "Invalid decision update data.",
+                message: errorMessage,
                 errors: validation.error.issues,
             });
             return;

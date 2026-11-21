@@ -4,6 +4,7 @@ exports.generateScenarios = exports.generateStructuredScenarioFallback = void 0;
 const zod_1 = require("zod");
 const env_1 = require("../../config/env");
 const error_middleware_1 = require("../../middleware/error.middleware");
+const careerScenario_service_1 = require("./careerScenario.service");
 /**
  * Normalization helpers to handle LLM variations (e.g., "moderate" -> "medium", "75%" -> 75).
  */
@@ -35,6 +36,7 @@ const normalizeScenarioType = (val) => {
  * AI output is validated before use.
  */
 const generatedScenarioSchema = zod_1.z.object({
+    decisionOverview: zod_1.z.any().optional(),
     scenarios: zod_1.z
         .array(zod_1.z.object({
         name: zod_1.z.string().trim().min(2).max(150),
@@ -46,12 +48,19 @@ const generatedScenarioSchema = zod_1.z.object({
             "custom",
         ])),
         riskLevel: zod_1.z.preprocess(normalizeRiskOrImpact, zod_1.z.enum(["low", "medium", "high"])),
+        learningRoadmap: zod_1.z.record(zod_1.z.string(), zod_1.z.any()).optional(),
+        interviewPreparation: zod_1.z.record(zod_1.z.string(), zod_1.z.any()).optional(),
+        opportunitiesAndBackup: zod_1.z.record(zod_1.z.string(), zod_1.z.any()).optional(),
         steps: zod_1.z
             .array(zod_1.z.object({
             stepNumber: zod_1.z.coerce.number().int().min(1),
             title: zod_1.z.string().trim().min(1).max(250),
             description: zod_1.z.string().trim().min(1).max(3000),
             timeframe: zod_1.z.string().trim().max(100).optional(),
+            whatToDo: zod_1.z.string().trim().max(2000).optional(),
+            howToDoIt: zod_1.z.string().trim().max(2000).optional(),
+            targetResult: zod_1.z.string().trim().max(2000).optional(),
+            completionCheck: zod_1.z.string().trim().max(2000).optional(),
         }))
             .max(20),
         outcomes: zod_1.z
@@ -66,6 +75,8 @@ const generatedScenarioSchema = zod_1.z.object({
                 return typeof v === "number" ? Math.min(100, Math.max(0, v)) : 75;
             }, zod_1.z.number().min(0).max(100)).optional(),
             impact: zod_1.z.preprocess(normalizeRiskOrImpact, zod_1.z.enum(["low", "medium", "high"])),
+            userControls: zod_1.z.string().trim().max(2000).optional(),
+            dependsOnOthersOrMarket: zod_1.z.string().trim().max(2000).optional(),
         }))
             .max(10),
     }))
@@ -1525,9 +1536,12 @@ const generateScenarios = async (input) => {
         throw new error_middleware_1.AppError("Time available and budget must be valid non-negative numbers.", 400);
     }
     const { apiUrl, apiKey, model } = getAIConfig();
-    // If no API key or URL configured, use the high-fidelity domain fallback immediately
+    const isCareer = (0, careerScenario_service_1.isCareerDecision)(category, decisionTitle, goal);
+    // If no API key or URL configured, use domain fallback immediately
     if (!apiUrl || !apiKey) {
-        return (0, exports.generateStructuredScenarioFallback)(input);
+        return isCareer
+            ? (0, careerScenario_service_1.generateCareerScenarios)(input)
+            : (0, exports.generateStructuredScenarioFallback)(input);
     }
     const decisionContext = {
         decisionTitle,
@@ -1538,6 +1552,25 @@ const generateScenarios = async (input) => {
         budget: input.budget,
         additionalContext: input.additionalContext?.trim(),
     };
+    const careerSystemPrompt = "You are an intelligent Career Acceleration and Technical Decision Engine. " +
+        "CRITICAL REQUIREMENT: For this career decision, generate EXACTLY 3 DISTINCT SCENARIOS with THREE COMPLETELY DIFFERENT PURPOSES: " +
+        "1. OPTIMISTIC SCENARIO ('Your Learning Roadmap'): Complete structured technical learning roadmap answering 'What should I learn, in what order, and how should I practise?' Detail exact beginner fundamentals, core concepts, intermediate technologies, advanced labs, milestones, and hands-on exercises. " +
+        "2. REALISTIC SCENARIO ('Your Interview Preparation'): Comprehensive technical interview syllabus answering 'What exactly should I prepare to perform well in technical interviews?' Detail subject-wise topics, core understanding, practical exercises, frequently tested interview questions, scenario problems, and preparation checklists. " +
+        "3. PESSIMISTIC SCENARIO ('Your Projects, Internships & Job Opportunities'): Practical projects, entry-level internship search strategy (LinkedIn, Naukri, Wellfound), job market skill gaps, alternative stepping-stone roles, and a 30-day recovery plan answering 'If I cannot get a job immediately, what practical steps can I take to gain experience?' " +
+        "DO NOT generate three similar roadmaps with different timelines. Each must serve its distinct purpose! " +
+        "Format: Return a valid JSON object with key 'scenarios' containing an array of 3 scenario objects (optimistic, realistic, pessimistic).";
+    const generalSystemPrompt = "You are an intelligent life simulation and strategic decision engine. " +
+        "CRITICAL REQUIREMENT: YOU MUST DYNAMICALLY AND UNIQUELY GENERATE 3 DISTINCT SCENARIOS (optimistic, realistic, pessimistic) TAILORED 100% SPECIFICALLY TO THE EXACT DECISION TITLE, CATEGORY, AND GOAL PROVIDED BY THE USER! " +
+        "NEVER return generic or repeated advice across different decisions! " +
+        "Adapt your guidance completely according to the domain: " +
+        "- If the category is 'Relationships': Focus exclusively on communication, mutual emotional safety, boundary-setting, co-living/relocation logistics, and relationship milestones (DO NOT mention code, resumes, or software). " +
+        "- If the category is 'Health & wellbeing': Focus on nutrition protocols, resistance/cardio training, circadian sleep, stress reduction, and habit milestones (DO NOT mention code or resumes). " +
+        "- If the category is 'Money & finance': Focus on budgeting, debt elimination (avalanche/snowball), index fund investing, emergency reserves, and asset allocation (DO NOT mention code or resumes). " +
+        "- If the category is 'Lifestyle': Focus on habit stacking, deep work time-blocking, work-life boundaries, environment redesign, and personal fulfillment. " +
+        "- If the category is 'Education': Focus on diagnostic exams, syllabus mastery, test preparation (GRE/IELTS/UPSC/etc.), SOP writing, and admission strategy. " +
+        "- If the category is 'Business & ventures': Focus on customer discovery, MVP prototyping, unit economics (CAC/LTV), marketing channels, and go-to-market. " +
+        "- If 'Other' or a custom decision: Create a customized multi-phase action roadmap that directly resolves the user's specific dilemma! " +
+        "Format: Return a valid JSON object with key 'scenarios' containing an array of 3 distinct scenario objects.";
     try {
         const response = await fetch(apiUrl, {
             method: "POST",
@@ -1552,26 +1585,7 @@ const generateScenarios = async (input) => {
                 messages: [
                     {
                         role: "system",
-                        content: "You are an intelligent life simulation and strategic decision engine. " +
-                            "CRITICAL REQUIREMENT: YOU MUST DYNAMICALLY AND UNIQUELY GENERATE 3 DISTINCT SCENARIOS (optimistic, realistic, pessimistic) TAILORED 100% SPECIFICALLY TO THE EXACT DECISION TITLE, CATEGORY, AND GOAL PROVIDED BY THE USER! " +
-                            "NEVER return generic or repeated advice across different decisions! " +
-                            "Adapt your guidance completely according to the domain: " +
-                            "- If the category is 'Career': Detail the exact skills, portfolio projects, and technical/HR interview prep for that exact career. " +
-                            "- If the category is 'Relationships': Focus exclusively on communication, mutual emotional safety, boundary-setting, co-living/relocation logistics, and relationship milestones (DO NOT mention code, resumes, or software). " +
-                            "- If the category is 'Health & wellbeing': Focus on nutrition protocols, resistance/cardio training, circadian sleep, stress reduction, and habit milestones (DO NOT mention code or resumes). " +
-                            "- If the category is 'Money & finance': Focus on budgeting, debt elimination (avalanche/snowball), index fund investing, emergency reserves, and asset allocation (DO NOT mention code or resumes). " +
-                            "- If the category is 'Lifestyle': Focus on habit stacking, deep work time-blocking, work-life boundaries, environment redesign, and personal fulfillment. " +
-                            "- If the category is 'Education': Focus on diagnostic exams, syllabus mastery, test preparation (GRE/IELTS/UPSC/etc.), SOP writing, and admission strategy. " +
-                            "- If the category is 'Business & ventures': Focus on customer discovery, MVP prototyping, unit economics (CAC/LTV), marketing channels, and go-to-market. " +
-                            "- If 'Other' or a custom decision: Create a customized multi-phase action roadmap that directly resolves the user's specific dilemma! " +
-                            "Format: Return a valid JSON object with key 'scenarios' containing an array of 3 distinct scenario objects: " +
-                            "Each scenario must have: " +
-                            "  - name: String (creative, scenario-specific name) " +
-                            "  - description: String (clear summary of this scenario's pathway) " +
-                            "  - type: 'optimistic' | 'realistic' | 'pessimistic' " +
-                            "  - riskLevel: 'low' | 'medium' | 'high' " +
-                            "  - steps: Array of 3-5 steps, each with stepNumber (1,2,3...), title (string), timeframe (string, e.g. 'Month 1-2'), and description (actionable and tailored to the title) " +
-                            "  - outcomes: Array of 2 outcomes, each with title (string), description (string), probability (number 0-100), and impact ('low' | 'medium' | 'high').",
+                        content: isCareer ? careerSystemPrompt : generalSystemPrompt,
                     },
                     {
                         role: "user",
@@ -1583,12 +1597,12 @@ const generateScenarios = async (input) => {
         });
         if (!response.ok) {
             console.warn(`AI provider returned HTTP ${response.status}. Using domain fallback.`);
-            return (0, exports.generateStructuredScenarioFallback)(input);
+            return isCareer ? (0, careerScenario_service_1.generateCareerScenarios)(input) : (0, exports.generateStructuredScenarioFallback)(input);
         }
         const completion = (await response.json());
         const content = completion.choices?.[0]?.message?.content;
         if (!content) {
-            return (0, exports.generateStructuredScenarioFallback)(input);
+            return isCareer ? (0, careerScenario_service_1.generateCareerScenarios)(input) : (0, exports.generateStructuredScenarioFallback)(input);
         }
         let cleanContent = content.trim();
         if (cleanContent.startsWith("```")) {
@@ -1601,13 +1615,31 @@ const generateScenarios = async (input) => {
         const validation = generatedScenarioSchema.safeParse(parsedContent);
         if (!validation.success) {
             console.warn("AI output did not match schema:", JSON.stringify(validation.error.issues, null, 2));
-            return (0, exports.generateStructuredScenarioFallback)(input);
+            return isCareer ? (0, careerScenario_service_1.generateCareerScenarios)(input) : (0, exports.generateStructuredScenarioFallback)(input);
+        }
+        if (isCareer) {
+            const careerBase = (0, careerScenario_service_1.generateCareerScenarios)(input);
+            // Enrich validated scenarios with deep career data structures
+            const enriched = validation.data.scenarios.map((sc) => {
+                const type = sc.type;
+                const matchingBase = careerBase.scenarios.find((b) => b.type === type);
+                return {
+                    ...sc,
+                    learningRoadmap: matchingBase?.learningRoadmap,
+                    interviewPreparation: matchingBase?.interviewPreparation,
+                    opportunitiesAndBackup: matchingBase?.opportunitiesAndBackup,
+                };
+            });
+            return {
+                decisionOverview: validation.data.decisionOverview || careerBase.decisionOverview,
+                scenarios: enriched,
+            };
         }
         return validation.data;
     }
     catch (err) {
         console.warn("AI service call failed or timed out. Falling back to domain generator:", err);
-        return (0, exports.generateStructuredScenarioFallback)(input);
+        return isCareer ? (0, careerScenario_service_1.generateCareerScenarios)(input) : (0, exports.generateStructuredScenarioFallback)(input);
     }
 };
 exports.generateScenarios = generateScenarios;

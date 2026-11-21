@@ -52,12 +52,67 @@ describe("Future Self Validators", () => {
         assert.strictEqual(invalid.success, false);
     });
 
-    it("should validate message input length", () => {
+    it("should validate message input length and reject gibberish", () => {
         const empty = sendMessageSchema.safeParse({ content: "" });
         assert.strictEqual(empty.success, false);
 
+        const gibberish = sendMessageSchema.safeParse({ content: "sdfsdoinoi" });
+        assert.strictEqual(gibberish.success, false);
+
         const valid = sendMessageSchema.safeParse({ content: "What habit helped you most?" });
         assert.strictEqual(valid.success, true);
+    });
+
+    it("should reject random gibberish like sdfsdoinoi in profile creation", () => {
+        const gibberishSituation = {
+            timeHorizon: "1 year" as const,
+            lifeAreas: ["Career"],
+            currentSituation: "sdfsdoinoi",
+            futureGoals: "Valid future goals with enough chars",
+            availableTime: "2 hours per day",
+        };
+        assert.strictEqual(createFutureSelfProfileSchema.safeParse(gibberishSituation).success, false);
+
+        const gibberishGoals = {
+            timeHorizon: "1 year" as const,
+            lifeAreas: ["Career"],
+            currentSituation: "Valid situation with enough chars",
+            futureGoals: "sdfsdoinoi",
+            availableTime: "2 hours per day",
+        };
+        assert.strictEqual(createFutureSelfProfileSchema.safeParse(gibberishGoals).success, false);
+
+        const gibberishTime = {
+            timeHorizon: "1 year" as const,
+            lifeAreas: ["Career"],
+            currentSituation: "Valid situation with enough chars",
+            futureGoals: "Valid future goals with enough chars",
+            availableTime: "sdfsdoinoi",
+        };
+        assert.strictEqual(createFutureSelfProfileSchema.safeParse(gibberishTime).success, false);
+
+        const gibberishBudget = {
+            timeHorizon: "1 year" as const,
+            lifeAreas: ["Career"],
+            currentSituation: "Valid situation with enough chars",
+            futureGoals: "Valid future goals with enough chars",
+            availableTime: "2 hours per day",
+            monthlyBudget: "sdfsdoinoi",
+        };
+        assert.strictEqual(createFutureSelfProfileSchema.safeParse(gibberishBudget).success, false);
+    });
+
+    it("should accept valid time commitments and monthly budgets", () => {
+        const validTimeAndBudget = {
+            timeHorizon: "1 year" as const,
+            lifeAreas: ["Career"],
+            currentSituation: "Working as a junior frontend developer at an agency.",
+            futureGoals: "Become a proficient senior engineer and build side projects.",
+            availableTime: "2 hrs",
+            monthlyBudget: "$100 - $300 for courses and tools",
+        };
+        const result = createFutureSelfProfileSchema.safeParse(validTimeAndBudget);
+        assert.strictEqual(result.success, true);
     });
 
     it("should validate reflection update", () => {

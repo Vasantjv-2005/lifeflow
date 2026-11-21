@@ -61,6 +61,26 @@ const scenarioStepSchema = new mongoose_1.Schema({
         trim: true,
         maxlength: [100, "Timeframe cannot exceed 100 characters"],
     },
+    whatToDo: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "What to do cannot exceed 2000 characters"],
+    },
+    howToDoIt: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "How to do it cannot exceed 2000 characters"],
+    },
+    targetResult: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "Target result cannot exceed 2000 characters"],
+    },
+    completionCheck: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "Completion check cannot exceed 2000 characters"],
+    },
 }, {
     _id: false,
 });
@@ -94,6 +114,21 @@ const scenarioOutcomeSchema = new mongoose_1.Schema({
             message: "Invalid outcome impact",
         },
     },
+    likelihood: {
+        type: String,
+        trim: true,
+        maxlength: [500, "Likelihood cannot exceed 500 characters"],
+    },
+    userControls: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "User controls description cannot exceed 2000 characters"],
+    },
+    dependsOnOthersOrMarket: {
+        type: String,
+        trim: true,
+        maxlength: [2000, "Market dependencies description cannot exceed 2000 characters"],
+    },
 }, {
     _id: false,
 });
@@ -101,10 +136,14 @@ const scenarioOutcomeSchema = new mongoose_1.Schema({
  * Main Scenario schema.
  */
 const scenarioSchema = new mongoose_1.Schema({
+    decisionId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Decision",
+        index: true,
+    },
     simulationId: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Simulation",
-        required: [true, "Simulation ID is required"],
         index: true,
     },
     userId: {
@@ -153,6 +192,28 @@ const scenarioSchema = new mongoose_1.Schema({
         },
         default: "medium",
     },
+    expectedTimeline: {
+        type: String,
+        trim: true,
+        maxlength: [200, "Timeline cannot exceed 200 characters"],
+    },
+    advantages: {
+        type: [String],
+        default: [],
+    },
+    challenges: {
+        type: [String],
+        default: [],
+    },
+    requiredResources: {
+        type: [String],
+        default: [],
+    },
+    backupPlan: {
+        type: String,
+        trim: true,
+        maxlength: [3000, "Backup plan cannot exceed 3000 characters"],
+    },
     steps: {
         type: [scenarioStepSchema],
         default: [],
@@ -160,6 +221,18 @@ const scenarioSchema = new mongoose_1.Schema({
     outcomes: {
         type: [scenarioOutcomeSchema],
         default: [],
+    },
+    learningRoadmap: {
+        type: mongoose_1.Schema.Types.Mixed,
+        required: false,
+    },
+    interviewPreparation: {
+        type: mongoose_1.Schema.Types.Mixed,
+        required: false,
+    },
+    opportunitiesAndBackup: {
+        type: mongoose_1.Schema.Types.Mixed,
+        required: false,
     },
     isSelected: {
         type: Boolean,

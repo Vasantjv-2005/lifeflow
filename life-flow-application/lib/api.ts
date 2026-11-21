@@ -102,13 +102,20 @@ export type ScenarioStep = {
   title: string
   description: string
   timeframe?: string
+  whatToDo?: string
+  howToDoIt?: string
+  targetResult?: string
+  completionCheck?: string
 }
 
 export type ScenarioOutcome = {
   title: string
   description: string
+  likelihood?: string
   probability?: number
   impact: "low" | "medium" | "high"
+  userControls?: string
+  dependsOnOthersOrMarket?: string
 }
 
 export type Scenario = {
@@ -120,9 +127,24 @@ export type Scenario = {
   type: "optimistic" | "realistic" | "pessimistic" | "custom"
   score?: number
   riskLevel: "low" | "medium" | "high"
+  expectedTimeline?: string
+  advantages?: string[]
+  challenges?: string[]
+  requiredResources?: string[]
+  backupPlan?: string
   steps?: ScenarioStep[]
   outcomes?: ScenarioOutcome[]
+  learningRoadmap?: LearningRoadmap
+  interviewPreparation?: InterviewPreparation
+  opportunitiesAndBackup?: OpportunitiesAndBackup
   isSelected?: boolean
+}
+
+export type DecisionOverview = {
+  yourDecision: string
+  whatWeKnow: string
+  assumptions: string[]
+  missingDetails?: string[]
 }
 
 export type SimulationPathStep = {
@@ -300,10 +322,13 @@ export const generateScenarios = async (data: {
   currentSituation?: string
   timeAvailable?: number
   budget?: number
+  skills?: string
+  experience?: string
+  challenges?: string
   additionalContext?: string
-}): Promise<{ scenarios: Scenario[] }> => {
+}): Promise<{ decisionOverview?: DecisionOverview; scenarios: Scenario[] }> => {
   const res = await api.post("/ai/generate-scenarios", data)
-  return res.data.data as { scenarios: Scenario[] }
+  return res.data.data as { decisionOverview?: DecisionOverview; scenarios: Scenario[] }
 }
 
 // ==================== FUTURE SELF INTERVIEW API ====================
@@ -493,3 +518,215 @@ export const updateFutureSelfReflection = async (
 export const deleteFutureSelfInterview = async (interviewId: string) => {
   return (await api.delete(`/future-self/interviews/${interviewId}`)).data
 }
+
+// ==================== AI DECISION ADVISOR & SCENARIO COMPARISON API ====================
+export interface AdvisorMessage {
+  id: string
+  decisionId: string
+  role: "user" | "assistant"
+  content: string
+  suggestedQuestions?: string[]
+  createdAt: string
+}
+
+export interface ScenarioComparisonColumn {
+  type: "optimistic" | "realistic" | "pessimistic" | "custom"
+  name: string
+  description: string
+  riskLevel: "low" | "medium" | "high"
+  timeRequired: {
+    completionTime: string
+    milestones: string[]
+    dailyCommitment: string
+  }
+  estimatedCost: {
+    budgetRange: string
+    keyExpenses: string[]
+    lowCostAlternatives: string
+  }
+  difficulty: {
+    level: "Beginner-Friendly" | "Intermediate" | "Advanced"
+    reason: string
+  }
+  potentialOutcomes: {
+    achievements: string[]
+    expectedProgress: string
+    opportunities: string[]
+  }
+  majorRisks: {
+    challenges: string[]
+    possibleDelays: string
+    backupPlan: string
+  }
+  requiredSkills: {
+    skillsNeeded: string[]
+    foundationalSkills: string[]
+    skillsToDevelop: string[]
+  }
+}
+
+export interface ScenarioComparisonDashboard {
+  decisionTitle: string
+  category: string
+  goal: string
+  scenarios: ScenarioComparisonColumn[]
+  generatedAt: string
+}
+
+export const sendAdvisorMessage = async (
+  decisionId: string,
+  message: string
+): Promise<{ userMessage: AdvisorMessage; assistantMessage: AdvisorMessage; suggestedQuestions?: string[] }> => {
+  const res = await api.post(`/decisions/${decisionId}/advisor/chat`, { message })
+  return {
+    userMessage: normalizeDoc(res.data.data.userMessage) as unknown as AdvisorMessage,
+    assistantMessage: normalizeDoc(res.data.data.assistantMessage) as unknown as AdvisorMessage,
+    suggestedQuestions: res.data.data.suggestedQuestions || [],
+  }
+}
+
+export const getAdvisorHistory = async (decisionId: string): Promise<AdvisorMessage[]> => {
+  const res = await api.get(`/decisions/${decisionId}/advisor/history`)
+  const list = res.data.data?.messages || []
+  return list.map((item: Record<string, unknown>) => normalizeDoc(item) as unknown as AdvisorMessage)
+}
+
+export const clearAdvisorHistory = async (decisionId: string): Promise<void> => {
+  await api.delete(`/decisions/${decisionId}/advisor/history`)
+}
+
+export const getScenarioComparison = async (decisionId: string): Promise<ScenarioComparisonDashboard> => {
+  const res = await api.get(`/decisions/${decisionId}/scenarios/comparison`)
+  return res.data.data.comparison as ScenarioComparisonDashboard
+}
+
+// ==================== CAREER SCENARIO TYPES & APIS ====================
+export interface LearningRoadmapStage {
+  stageNumber: number
+  title: string
+  timeframe: string
+  skillsToMaster: string[]
+  coreConcepts: string[]
+  technologiesAndTools: string[]
+  practicalExercises: string[]
+  handsOnLabs: string[]
+  recommendedResources: Array<{
+    title: string
+    provider: string
+    url?: string
+    isFree?: boolean
+  }>
+  milestone: string
+}
+
+export interface LearningRoadmap {
+  targetRole: string
+  estimatedLearningTime: string
+  dailyCommitment: string
+  overview: string
+  stages: LearningRoadmapStage[]
+}
+
+export interface InterviewSubject {
+  subjectName: string
+  importantTopics: string[]
+  detailedSubtopics: string[]
+  whatToUnderstand: string
+  practicalExercises: string[]
+  interviewQuestions: Array<{
+    question: string
+    answerHint?: string
+    type: "technical" | "scenario" | "hr"
+  }>
+  expectedKnowledgeLevel: "Beginner" | "Intermediate" | "Advanced"
+  checklist: string[]
+}
+
+export interface InterviewPreparation {
+  targetRole: string
+  overview: string
+  subjects: InterviewSubject[]
+  frequentlyTestedConcepts: string[]
+  hrInterviewQuestions: Array<{
+    question: string
+    guidance: string
+  }>
+  resumeChecklist: string[]
+  mockInterviewPractice: string
+}
+
+export interface PracticalProject {
+  name: string
+  level: "Beginner" | "Intermediate" | "Advanced"
+  problemSolved: string
+  technologies: string[]
+  skillsDemonstrated: string[]
+  implementationSteps: string[]
+  expectedOutput: string
+  githubRecommendations: string
+}
+
+export interface JobListing {
+  title: string
+  company: string
+  platform: "LinkedIn" | "Naukri" | "Wellfound"
+  location: string
+  employmentType: string
+  experienceLevel: string
+  requiredSkills: string[]
+  postedDate: string
+  applicationUrl: string
+  lastVerifiedDate: string
+  isVerifiedListing: boolean
+  descriptionSnippet?: string
+}
+
+export interface JobMarketAnalysis {
+  mostRequestedSkills: string[]
+  commonQualifications: string[]
+  commonTools: string[]
+  experienceRequirements: string
+  internshipAvailability: string
+  commonJobTitles: string[]
+  locationTrends: string
+  userSkillGaps: string[]
+}
+
+export interface AlternativeCareerRoute {
+  role: string
+  description: string
+  howItHelpsProgression: string
+}
+
+export interface RecoveryStrategy {
+  reasonsForStruggle: string[]
+  resumeImprovements: string[]
+  additionalProjects: string[]
+  missingTechnicalSkills: string[]
+  networkingAndPortfolioTips: string[]
+  thirtyDayActionPlan: string[]
+}
+
+export interface OpportunitiesAndBackup {
+  targetRole: string
+  overview: string
+  projects: PracticalProject[]
+  internshipOpportunities: JobListing[]
+  jobMarketAnalysis: JobMarketAnalysis
+  alternativeRoutes: AlternativeCareerRoute[]
+  recoveryStrategy: RecoveryStrategy
+}
+
+export const fetchCareerJobs = async (
+  role: string,
+  location?: string
+): Promise<{ jobs: JobListing[]; marketAnalysis: JobMarketAnalysis }> => {
+  const params = new URLSearchParams({ role })
+  if (location) params.append("location", location)
+  const res = await api.get(`/ai/career-jobs?${params.toString()}`)
+  return {
+    jobs: res.data.data.jobs || [],
+    marketAnalysis: res.data.data.marketAnalysis,
+  }
+}
+

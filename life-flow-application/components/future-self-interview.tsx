@@ -74,6 +74,156 @@ const LIFE_AREAS = [
   "Work-Life Balance",
 ]
 
+const KEYBOARD_PATTERNS = [
+  /qwerty/i,
+  /asdf/i,
+  /zxcv/i,
+  /qwer/i,
+  /dfgh/i,
+  /fghj/i,
+  /ghjk/i,
+  /hjkl/i,
+  /lkjh/i,
+  /poiuy/i,
+  /mnbvc/i,
+  /sdfs/i,
+  /fsdf/i,
+  /dsfs/i,
+  /sdff/i,
+  /asdasd/i,
+  /tyui/i,
+  /yuio/i,
+  /uiop/i,
+  /xcvb/i,
+  /cvbn/i,
+  /vbnm/i,
+  /wert/i,
+  /erty/i,
+  /rtyu/i,
+  /sdfg/i,
+  /fdsa/i,
+  /gfdsa/i,
+  /hgfdsa/i,
+  /jhgfdsa/i,
+  /kjhgfdsa/i,
+  /nbvc/i,
+  /bvcx/i,
+  /vcxz/i,
+  /trewq/i,
+  /ytrewq/i,
+]
+
+const KNOWN_4CONSONANT_WORDS = new Set([
+  "strength",
+  "strengths",
+  "length",
+  "lengths",
+  "catch",
+  "match",
+  "watch",
+  "pitch",
+  "switch",
+  "scratch",
+  "stretch",
+  "spring",
+  "splash",
+  "bright",
+  "flight",
+  "wright",
+  "insight",
+  "straight",
+  "eighth",
+  "twelfth",
+  "glimpse",
+  "rhythm",
+  "rhythms",
+  "sch",
+  "christ",
+  "struct",
+  "construct",
+  "instruct",
+  "destroy",
+  "explain",
+  "stack",
+  "stacks",
+  "script",
+  "night",
+  "light",
+  "eight",
+  "weight",
+  "through",
+  "thought",
+  "psych",
+  "craft",
+  "draft",
+  "warmth",
+  "depth",
+])
+
+const COMPLEX_SPEECH_REPLACEMENTS: Array<[RegExp, string]> = [
+  [/\bsynthesiz(e|es|ed|ing|ation)\b/gi, "bring together"],
+  [/\boptimiz(e|es|ed|ing|ation)\b/gi, "improve"],
+  [/\bleverag(e|es|ed|ing)\b/gi, "use"],
+  [/\butiliz(e|es|ed|ing|ation)\b/gi, "use"],
+  [/\btrajector(y|ies)\b/gi, "path"],
+  [/\bmethodolog(y|ies)\b/gi, "method"],
+  [/\btransformative\b/gi, "life-changing"],
+  [/\bproclivit(y|ies)\b/gi, "habit"],
+  [/\bdichotom(y|ies)\b/gi, "difference"],
+  [/\bconcomitant\b/gi, "related"],
+  [/\bapparatus\b/gi, "tool"],
+  [/\bparadigm\b/gi, "mindset"],
+  [/\bdelv(e|es|ed|ing)\b/gi, "look into"],
+  [/\bpivotal\b/gi, "key"],
+  [/\bcatalyst\b/gi, "spark"],
+  [/\borchestrat(e|es|ed|ing)\b/gi, "organize"],
+  [/\bmanifest(ed|ing)?\b/gi, "make real"],
+  [/\bcultivat(e|es|ed|ing)\b/gi, "build"],
+  [/\bendeavor(s)?\b/gi, "effort"],
+  [/\bholistic\b/gi, "complete"],
+  [/\bfacilitat(e|es|ed|ing)\b/gi, "help"],
+  [/\bsubsequently\b/gi, "then"],
+  [/\bfurthermore\b/gi, "also"],
+  [/\bmoreover\b/gi, "also"],
+  [/\bcommenc(e|es|ed|ing)\b/gi, "start"],
+  [/\bterminat(e|es|ed|ing)\b/gi, "end"],
+  [/\bdiscrepanc(y|ies)\b/gi, "difference"],
+  [/\bimperative\b/gi, "very important"],
+  [/\bfeasible\b/gi, "possible"],
+  [/\bsubstantive\b/gi, "real"],
+  [/\bcomprehensive\b/gi, "complete"],
+  [/\bexponential(ly)?\b/gi, "huge"],
+  [/\bparameter(s)?\b/gi, "rule"],
+  [/\bmitigat(e|es|ed|ing)\b/gi, "reduce"],
+  [/\bcontingenc(y|ies)\b/gi, "backup plan"],
+  [/\bstrategic\b/gi, "smart"],
+  [/\breiterate\b/gi, "repeat"],
+  [/\bascertain\b/gi, "find out"],
+  [/\bdisseminate\b/gi, "share"],
+  [/\bexecute\b/gi, "do"],
+  [/\bexecution\b/gi, "action"],
+  [/\bproficiency\b/gi, "skill"],
+  [/\bacquire\b/gi, "get"],
+  [/\bacquisition\b/gi, "learning"],
+  [/\bperspective\b/gi, "view"],
+  [/\bfurnish\b/gi, "give"],
+  [/\bpredominantly\b/gi, "mostly"],
+  [/\bcommensurate\b/gi, "matching"],
+]
+
+/**
+ * Simplifies language to approximately a 5th-grade reading level
+ * for the audio voice speaker.
+ */
+export const simplifyForSpeaker = (text: string): string => {
+  if (!text) return ""
+  let simplified = text
+  for (const [pattern, replacement] of COMPLEX_SPEECH_REPLACEMENTS) {
+    simplified = simplified.replace(pattern, replacement)
+  }
+  return simplified
+}
+
 /**
  * Validates that an input string consists of meaningful language
  * rather than random keysmash or gibberish (e.g. "sdfsdoinoi", "asdfghjkl").
@@ -86,14 +236,27 @@ export const isValidMeaningfulStatement = (text: string): boolean => {
   // Repeated identical characters like "aaaaa" or "11111"
   if (/^(.)\1+$/.test(trimmed)) return false
 
-  // Detect random keysmash with 5 or more consecutive consonants (e.g. "sdfsd", "qwrtp", "sdfsdoinoi")
-  if (/[bcdfghjklmnpqrstvwxz]{5,}/i.test(trimmed)) return false
+  // Reject known keyboard mash / walk patterns
+  for (const pat of KEYBOARD_PATTERNS) {
+    if (pat.test(trimmed)) return false
+  }
 
-  const words = trimmed.split(/\s+/).filter(Boolean)
+  // Repeating 2 or 3 character patterns (e.g. "ababab", "asdasd")
+  if (/(\b|\w)(\w{2,3})\2{2,}(\w|\b)/i.test(trimmed)) return false
 
-  // If there is only 1 word and it's long without spaces, check for keysmash patterns
-  if (words.length === 1 && trimmed.length > 7) {
-    if (/[bcdfghjklmnpqrstvwxz]{4,}/i.test(trimmed)) return false
+  const words = trimmed.split(/[\s\-]+/).filter(Boolean)
+
+  // Check consonant clusters in words
+  for (const word of words) {
+    const cleanWord = word.replace(/[^a-zA-Z]/g, "").toLowerCase()
+    if (cleanWord.length >= 4) {
+      if (/[bcdfghjklmnpqrstvwxz]{5,}/.test(cleanWord)) return false
+      const match = cleanWord.match(/[bcdfghjklmnpqrstvwxz]{4,}/g)
+      if (match) {
+        const isKnown = Array.from(KNOWN_4CONSONANT_WORDS).some((kw) => cleanWord.includes(kw))
+        if (!isKnown) return false
+      }
+    }
   }
 
   // Must contain letters
@@ -104,8 +267,8 @@ export const isValidMeaningfulStatement = (text: string): boolean => {
   const vowels = trimmed.replace(/[^aeiouyAEIOUY]/g, "")
   const vowelRatio = vowels.length / letters.length
 
-  // In normal human language, vowel ratio is between 15% and 85%
-  if (letters.length >= 6 && (vowelRatio < 0.15 || vowelRatio > 0.85)) {
+  // In normal human language, vowel ratio is between 12% and 88%
+  if (letters.length >= 6 && (vowelRatio < 0.12 || vowelRatio > 0.88)) {
     return false
   }
 
@@ -123,6 +286,49 @@ export const isValidMeaningfulStatement = (text: string): boolean => {
   }
 
   return true
+}
+
+/**
+ * Validates a realistic time commitment (e.g. "1-2 hours per day", "2 hrs", "30 mins").
+ */
+export const isValidTimeCommitment = (text: string): boolean => {
+  if (!text || typeof text !== "string") return false
+  const trimmed = text.trim()
+  if (trimmed.length < 2) return false
+  if (/^(.)\1+$/.test(trimmed)) return false
+  for (const pat of KEYBOARD_PATTERNS) {
+    if (pat.test(trimmed)) return false
+  }
+  if (/[bcdfghjklmnpqrstvwxz]{5,}/i.test(trimmed)) return false
+
+  const timeRegex = /(hr|hour|min|day|week|weekend|time|daily|m\b|h\b)/i
+  const digitRegex = /\d/
+  if (digitRegex.test(trimmed) && (timeRegex.test(trimmed) || trimmed.length <= 15)) {
+    return true
+  }
+  if (timeRegex.test(trimmed)) return true
+  return isValidMeaningfulStatement(trimmed)
+}
+
+/**
+ * Validates a realistic monthly budget (e.g. "$100", "500 USD", "free", "none", or empty).
+ */
+export const isValidBudget = (text: string): boolean => {
+  if (!text || typeof text !== "string") return true
+  const trimmed = text.trim()
+  if (trimmed.length === 0) return true
+  if (/^(.)\1+$/.test(trimmed)) return false
+  for (const pat of KEYBOARD_PATTERNS) {
+    if (pat.test(trimmed)) return false
+  }
+  if (/[bcdfghjklmnpqrstvwxz]{5,}/i.test(trimmed)) return false
+
+  const budgetWords = /(free|zero|none|minimal|modest|no budget|dollars?|usd|inr|eur|budget|k\b)/i
+  const currencyOrDigit = /[\d$€£₹¥]/
+  if (currencyOrDigit.test(trimmed) || budgetWords.test(trimmed)) {
+    return true
+  }
+  return isValidMeaningfulStatement(trimmed)
 }
 
 export function FutureSelfInterviewExperience() {
@@ -221,7 +427,7 @@ export function FutureSelfInterviewExperience() {
     try {
       window.speechSynthesis.cancel()
 
-      const cleanText = text
+      const cleanText = simplifyForSpeaker(text)
         .replace(/[*_#`~[\]]/g, "")
         .replace(/\n\s*\n/g, ". ")
         .slice(0, 1000)
@@ -363,7 +569,7 @@ export function FutureSelfInterviewExperience() {
 
       // Speak opening message if voice enabled
       setTimeout(() => {
-        speakText(openingMessage.content)
+        speakText(openingMessage.metadata?.spokenTranscript || openingMessage.content)
       }, 700)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
@@ -431,7 +637,7 @@ export function FutureSelfInterviewExperience() {
       setMessages((prev) => [...prev.filter((m) => m.id !== tempUserMsg.id), userMessage, assistantMessage])
 
       // Automatically speak the new response if not muted
-      speakText(assistantMessage.content)
+      speakText(assistantMessage.metadata?.spokenTranscript || assistantMessage.content)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(msg || "Failed to deliver message to your future self.")
@@ -1088,13 +1294,13 @@ export function FutureSelfInterviewExperience() {
                       fontSize: 13,
                       borderColor:
                         formData.availableTime.trim().length > 0 &&
-                        !isValidMeaningfulStatement(formData.availableTime)
+                        !isValidTimeCommitment(formData.availableTime)
                           ? "#dc2626"
                           : undefined,
                     }}
                   />
                   {formData.availableTime.trim().length > 0 &&
-                    !isValidMeaningfulStatement(formData.availableTime) && (
+                    !isValidTimeCommitment(formData.availableTime) && (
                       <span
                         style={{
                           fontSize: 12,
@@ -1118,8 +1324,31 @@ export function FutureSelfInterviewExperience() {
                     placeholder="e.g. $100 - $300 for courses and tools"
                     value={formData.monthlyBudget}
                     onChange={(e) => setFormData({ ...formData, monthlyBudget: e.target.value })}
-                    style={{ width: "100%", padding: 10, fontSize: 13 }}
+                    style={{
+                      width: "100%",
+                      padding: 10,
+                      fontSize: 13,
+                      borderColor:
+                        formData.monthlyBudget.trim().length > 0 &&
+                        !isValidBudget(formData.monthlyBudget)
+                          ? "#dc2626"
+                          : undefined,
+                    }}
                   />
+                  {formData.monthlyBudget.trim().length > 0 &&
+                    !isValidBudget(formData.monthlyBudget) && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#dc2626",
+                          marginTop: 6,
+                          display: "block",
+                          fontWeight: 500,
+                        }}
+                      >
+                        not a valid statement
+                      </span>
+                    )}
                 </div>
               </div>
             </div>
@@ -1238,8 +1467,12 @@ export function FutureSelfInterviewExperience() {
                       toast.error("Please state your available time per day.")
                       return
                     }
-                    if (formData.availableTime.trim().length < 2 || !isValidMeaningfulStatement(formData.availableTime)) {
+                    if (!isValidTimeCommitment(formData.availableTime)) {
                       toast.error("not a valid statement. Please provide a realistic time commitment (e.g. 1-2 hours per day).")
+                      return
+                    }
+                    if (formData.monthlyBudget.trim().length > 0 && !isValidBudget(formData.monthlyBudget)) {
+                      toast.error("not a valid statement. Please enter a valid monthly budget (e.g. $100 or leave empty).")
                       return
                     }
                   }
@@ -1564,7 +1797,7 @@ export function FutureSelfInterviewExperience() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
                     <button
                       type="button"
-                      onClick={() => speakText(msg.content)}
+                      onClick={() => speakText(msg.metadata?.spokenTranscript || msg.content)}
                       style={{
                         background: "none",
                         border: "none",
@@ -1654,12 +1887,30 @@ export function FutureSelfInterviewExperience() {
                   height: 44,
                   padding: "0 16px",
                   borderRadius: 8,
-                  border: "1px solid #dcd6c9",
+                  border:
+                    inputMessage.trim().length > 0 &&
+                    !isValidMeaningfulStatement(inputMessage)
+                      ? "1px solid #dc2626"
+                      : "1px solid #dcd6c9",
                   fontSize: 13.5,
                   background: "#faf9f6",
                   outline: "none",
                 }}
               />
+              {inputMessage.trim().length > 0 &&
+                !isValidMeaningfulStatement(inputMessage) && (
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      color: "#dc2626",
+                      marginTop: 4,
+                      display: "block",
+                      fontWeight: 500,
+                    }}
+                  >
+                    not a valid statement
+                  </span>
+                )}
             </div>
             <button
               type="submit"

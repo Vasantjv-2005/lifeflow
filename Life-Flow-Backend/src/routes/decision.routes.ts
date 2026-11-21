@@ -8,6 +8,12 @@ import {
     updateDecision,
     deleteDecision,
 } from "../controllers/decision.controller";
+import {
+    chatWithAdvisor,
+    getAdvisorHistory,
+    clearAdvisorHistory,
+    getScenarioComparison,
+} from "../controllers/decisionAdvisor.controller";
 
 const router = Router();
 
@@ -28,5 +34,18 @@ router.patch("/:id", updateDecision);
 
 // DELETE /api/decisions/:id - Delete a decision
 router.delete("/:id", deleteDecision);
+
+// ==================== AI DECISION ADVISOR & SCENARIO COMPARISON ====================
+// POST /api/decisions/:decisionId/advisor/chat - Send message to AI Advisor
+router.post("/:decisionId/advisor/chat", chatWithAdvisor);
+
+// GET /api/decisions/:decisionId/advisor/history - Get conversation history
+router.get("/:decisionId/advisor/history", getAdvisorHistory);
+
+// DELETE /api/decisions/:decisionId/advisor/history - Clear conversation history
+router.delete("/:decisionId/advisor/history", clearAdvisorHistory);
+
+// GET /api/decisions/:decisionId/scenarios/comparison - 6-dimension scenario comparison
+router.get("/:decisionId/scenarios/comparison", getScenarioComparison);
 
 export default router;

@@ -38,6 +38,69 @@ const getAIConfig = () => {
     return { apiUrl, apiKey, model };
 };
 
+const COMPLEX_SPEECH_REPLACEMENTS: Array<[RegExp, string]> = [
+    [/\bsynthesiz(e|es|ed|ing|ation)\b/gi, "bring together"],
+    [/\boptimiz(e|es|ed|ing|ation)\b/gi, "improve"],
+    [/\bleverag(e|es|ed|ing)\b/gi, "use"],
+    [/\butiliz(e|es|ed|ing|ation)\b/gi, "use"],
+    [/\btrajector(y|ies)\b/gi, "path"],
+    [/\bmethodolog(y|ies)\b/gi, "method"],
+    [/\btransformative\b/gi, "life-changing"],
+    [/\bproclivit(y|ies)\b/gi, "habit"],
+    [/\bdichotom(y|ies)\b/gi, "difference"],
+    [/\bconcomitant\b/gi, "related"],
+    [/\bapparatus\b/gi, "tool"],
+    [/\bparadigm\b/gi, "mindset"],
+    [/\bdelv(e|es|ed|ing)\b/gi, "look into"],
+    [/\bpivotal\b/gi, "key"],
+    [/\bcatalyst\b/gi, "spark"],
+    [/\borchestrat(e|es|ed|ing)\b/gi, "organize"],
+    [/\bmanifest(ed|ing)?\b/gi, "make real"],
+    [/\bcultivat(e|es|ed|ing)\b/gi, "build"],
+    [/\bendeavor(s)?\b/gi, "effort"],
+    [/\bholistic\b/gi, "complete"],
+    [/\bfacilitat(e|es|ed|ing)\b/gi, "help"],
+    [/\bsubsequently\b/gi, "then"],
+    [/\bfurthermore\b/gi, "also"],
+    [/\bmoreover\b/gi, "also"],
+    [/\bcommenc(e|es|ed|ing)\b/gi, "start"],
+    [/\bterminat(e|es|ed|ing)\b/gi, "end"],
+    [/\bdiscrepanc(y|ies)\b/gi, "difference"],
+    [/\bimperative\b/gi, "very important"],
+    [/\bfeasible\b/gi, "possible"],
+    [/\bsubstantive\b/gi, "real"],
+    [/\bcomprehensive\b/gi, "complete"],
+    [/\bexponential(ly)?\b/gi, "huge"],
+    [/\bparameter(s)?\b/gi, "rule"],
+    [/\bmitigat(e|es|ed|ing)\b/gi, "reduce"],
+    [/\bcontingenc(y|ies)\b/gi, "backup plan"],
+    [/\bstrategic\b/gi, "smart"],
+    [/\breiterate\b/gi, "repeat"],
+    [/\bascertain\b/gi, "find out"],
+    [/\bdisseminate\b/gi, "share"],
+    [/\bexecute\b/gi, "do"],
+    [/\bexecution\b/gi, "action"],
+    [/\bproficiency\b/gi, "skill"],
+    [/\bacquire\b/gi, "get"],
+    [/\bacquisition\b/gi, "learning"],
+    [/\bperspective\b/gi, "view"],
+    [/\bfurnish\b/gi, "give"],
+    [/\bpredominantly\b/gi, "mostly"],
+    [/\bcommensurate\b/gi, "matching"],
+];
+
+/**
+ * Simplifies language to a clear 5th-grade reading level.
+ */
+export const simplifyForSpeaker = (text: string): string => {
+    if (!text) return "";
+    let simplified = text;
+    for (const [pattern, replacement] of COMPLEX_SPEECH_REPLACEMENTS) {
+        simplified = simplified.replace(pattern, replacement);
+    }
+    return simplified;
+};
+
 /**
  * Fallback generator for Future Self Profile using simple, natural everyday English.
  */
@@ -207,7 +270,7 @@ export const generateFutureSelfChatResponseAI = async (params: {
     history: Array<{ role: "user" | "assistant"; content: string }>;
     userMessage: string;
     userName?: string;
-}): Promise<{ response: string; suggestedQuestions: string[] }> => {
+}): Promise<{ response: string; spokenText?: string; suggestedQuestions: string[] }> => {
     const { profile, history, userMessage, userName } = params;
     const { apiUrl, apiKey, model } = getAIConfig();
 
@@ -219,8 +282,10 @@ export const generateFutureSelfChatResponseAI = async (params: {
     ];
 
     if (!apiUrl || !apiKey) {
+        const fallbackText = `Looking back from ${profile.timeHorizon} in the future, the big secret was keeping things simple. When you asked about "${userMessage.slice(0, 50)}", what helped most was doing one small thing every day instead of waiting until we felt ready. You do not need to do everything at once. Take it one day at a time, and you will make real progress.`;
         return {
-            response: `In this possible version of our life ${profile.timeHorizon} from now, the secret was really simple: we just stopped making excuses and focused on small daily steps. You asked: "${userMessage}". Looking back, the biggest lesson was to not wait until everything felt easy or comfortable. We just started doing the work, and the confidence came later. Keep your routine simple and don't overcomplicate it.`,
+            response: fallbackText,
+            spokenText: `Looking back from ${profile.timeHorizon} in the future, the secret was keeping things simple. Take it one small step each day, and you will make real progress.`,
             suggestedQuestions: fallbackQuestions,
         };
     }
@@ -229,13 +294,14 @@ export const generateFutureSelfChatResponseAI = async (params: {
 
     const systemPrompt = `You are roleplaying as the user's HYPOTHETICAL FUTURE SELF (${profile.timeHorizon} in the future) in LifeFlow.
 
-CRITICAL LANGUAGE REQUIREMENT:
-- USE SIMPLE, CLEAR, EVERYDAY ENGLISH!
-- DO NOT USE HIGH VOCABULARY, COMPLEX JARGON, OR FORMAL ACADEMIC WORDS!
-- Keep your sentences short, friendly, and natural.
-- Speak warmly in the first person ("I", "we", "looking back").
-- Talk like a supportive best friend or wise mentor sitting right next to the user.
-- Keep the response to 2 or 3 short, easy-to-read paragraphs.
+CRITICAL READING LEVEL: 5TH GRADE SIMPLE ENGLISH ONLY!
+- USE VERY SIMPLE, EVERYDAY ENGLISH! Speak like you are talking to a 10-year-old child or a close friend over coffee.
+- The user is listening to you through an audio speaker (text-to-speech), so your words must be short, clear, warm, and natural!
+- Absolutely FORBIDDEN words (do NOT use any of these): "synthesize", "dichotomy", "proclivity", "trajectories", "apparatus", "paradigm", "concomitant", "delve", "pivotal", "catalyst", "testament", "orchestrate", "leverage", "optimize", "manifest", "transformative", "cultivate", "endeavor", "holistic", "facilitate", "utilize", "methodology".
+- Use short sentences with everyday words like "start", "stop", "build", "practice", "help", "learn", "hard", "easy", "fun".
+- Speak in warm, conversational first person ("I", "we", "looking back").
+- Keep your answer short: 2 small paragraphs (maximum 100 words total).
+- Provide a "spokenText" version that is 2 or 3 short, warm sentences (under 45 words) that sound completely natural and simple when read aloud by the voice speaker.
 
 CRITICAL SAFETY & ETHICS:
 1. You are a hypothetical AI projection exploring possibilities, NOT an actual psychic or real time traveler.
@@ -251,7 +317,8 @@ Profile Context:
 
 Return a JSON object with:
 {
-  "response": "Your simple, friendly, warm answer in everyday English (2 to 3 short paragraphs)",
+  "response": "Your simple, friendly, warm answer in 5th-grade English (2 short paragraphs, max 100 words)",
+  "spokenText": "2 or 3 very short, warm sentences for the voice speaker to read aloud",
   "suggestedQuestions": ["Simple question 1", "Simple question 2", "Simple question 3"]
 }`;
 
@@ -291,16 +358,21 @@ Return a JSON object with:
         }
 
         const parsed = JSON.parse(clean);
+        const responseText = typeof parsed.response === "string" ? parsed.response : String(parsed);
+        const spokenText = typeof parsed.spokenText === "string" ? parsed.spokenText : responseText.slice(0, 200);
         return {
-            response: typeof parsed.response === "string" ? parsed.response : String(parsed),
+            response: simplifyForSpeaker(responseText),
+            spokenText: simplifyForSpeaker(spokenText),
             suggestedQuestions: Array.isArray(parsed.suggestedQuestions)
                 ? parsed.suggestedQuestions.slice(0, 4)
                 : fallbackQuestions,
         };
     } catch (err) {
         console.warn("AI chat completion error:", err);
+        const fallbackCatch = `Looking back from ${profile.timeHorizon} in the future, what helped most was doing one small thing every day. You do not need to do everything at once. Just focus on your habit today.`;
         return {
-            response: `In this possible version of our journey, dealing with "${userMessage.slice(0, 80)}" came down to one simple thing: we stopped trying to do everything at once. We picked one small task each day and finished it before doing anything else. Keep your daily habits clear and realistic.`,
+            response: fallbackCatch,
+            spokenText: `Looking back from ${profile.timeHorizon} in the future, what helped most was doing one small thing every day. Just focus on your habit today.`,
             suggestedQuestions: fallbackQuestions,
         };
     }
@@ -403,8 +475,8 @@ Return a JSON object strictly conforming to:
             risks: Array.isArray(parsed.risks) ? parsed.risks : fallbackSummary.risks,
             tradeOffs: Array.isArray(parsed.tradeOffs) ? parsed.tradeOffs : fallbackSummary.tradeOffs,
             nextSteps: Array.isArray(parsed.nextSteps) ? parsed.nextSteps : fallbackSummary.nextSteps,
-            fullSummary: typeof parsed.fullSummary === "string" ? parsed.fullSummary : fallbackSummary.fullSummary,
-            spokenText: typeof parsed.spokenText === "string" ? parsed.spokenText : fallbackSummary.spokenText,
+            fullSummary: typeof parsed.fullSummary === "string" ? simplifyForSpeaker(parsed.fullSummary) : fallbackSummary.fullSummary,
+            spokenText: typeof parsed.spokenText === "string" ? simplifyForSpeaker(parsed.spokenText) : fallbackSummary.spokenText,
             generatedAt: new Date(),
         };
     } catch (err) {

@@ -20,6 +20,18 @@ export interface IDecisionOption {
 }
 
 /**
+ * AI-generated decision analysis.
+ */
+export interface IDecisionAIAnalysis {
+    understanding?: string;
+    assumptions?: string[];
+    requiredSkills?: string[];
+    relevantProjects?: string[];
+    learningResources?: string[];
+    recommendedNextActions?: string[];
+}
+
+/**
  * Main Decision document interface.
  */
 export interface IDecision extends Document {
@@ -35,6 +47,9 @@ export interface IDecision extends Document {
     factors: IDecisionFactor[];
     options: IDecisionOption[];
     status: "draft" | "active" | "completed";
+    generationStatus?: "pending" | "processing" | "completed" | "failed";
+    generationError?: string;
+    aiAnalysis?: IDecisionAIAnalysis;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -130,36 +145,35 @@ const decisionSchema = new Schema<IDecision>(
             required: [true, "Decision title is required"],
             trim: true,
             minlength: [2, "Decision title must be at least 2 characters"],
-            maxlength: [150, "Decision title cannot exceed 150 characters"],
+            maxlength: [500, "Decision title cannot exceed 500 characters"],
         },
 
         description: {
             type: String,
             trim: true,
-            maxlength: [1000, "Decision description cannot exceed 1000 characters"],
+            maxlength: [2000, "Decision description cannot exceed 2000 characters"],
         },
 
         category: {
             type: String,
             required: [true, "Decision category is required"],
             trim: true,
-            maxlength: [50, "Decision category cannot exceed 50 characters"],
+            maxlength: [100, "Decision category cannot exceed 100 characters"],
         },
 
         goal: {
             type: String,
-            required: [true, "Decision goal is required"],
             trim: true,
-            minlength: [2, "Decision goal must be at least 2 characters"],
-            maxlength: [500, "Decision goal cannot exceed 500 characters"],
+            maxlength: [2000, "Decision goal cannot exceed 2000 characters"],
+            default: "",
         },
 
         currentSituation: {
             type: String,
             trim: true,
             maxlength: [
-                1000,
-                "Current situation cannot exceed 1000 characters",
+                3000,
+                "Current situation cannot exceed 3000 characters",
             ],
         },
 
@@ -190,7 +204,27 @@ const decisionSchema = new Schema<IDecision>(
                 values: ["draft", "active", "completed"],
                 message: "Invalid decision status",
             },
-            default: "draft",
+            default: "active",
+        },
+
+        generationStatus: {
+            type: String,
+            enum: ["pending", "processing", "completed", "failed"],
+            default: "completed",
+        },
+
+        generationError: {
+            type: String,
+            trim: true,
+        },
+
+        aiAnalysis: {
+            understanding: { type: String, trim: true },
+            assumptions: { type: [String], default: [] },
+            requiredSkills: { type: [String], default: [] },
+            relevantProjects: { type: [String], default: [] },
+            learningResources: { type: [String], default: [] },
+            recommendedNextActions: { type: [String], default: [] },
         },
     },
     {

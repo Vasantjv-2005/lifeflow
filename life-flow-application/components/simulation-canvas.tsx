@@ -21,7 +21,6 @@ import {
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   CircleHelp,
   Clock3,
   ExternalLink,
@@ -149,7 +148,7 @@ export function getDomainRoadmapData(title: string, goal?: string, category?: st
   const cat = (category || "").toLowerCase()
 
   // 0A. RELATIONSHIPS & INTERPERSONAL DYNAMICS
-  if (/(relationship|relationships|partner|marriage|dating|couple|family|spouse|friendship|co-living|relocate together)/i.test(q) || cat.includes("relationship")) {
+  if (cat.includes("relationship") || /\b(relationship|relationships|partner|marriage|dating|couple|family|spouse|friendship|co-living|relocate together)\b/i.test(q)) {
     return {
       jobKeywords: "",
       guideHeading: "Relationship Harmony & Shared Living Playbook",
@@ -248,7 +247,7 @@ export function getDomainRoadmapData(title: string, goal?: string, category?: st
   }
 
   // 0B. HEALTH & WELLBEING
-  if (/(health|fitness|wellness|wellbeing|weight|nutrition|workout|mental health|sleep|diet|exercise|therapy)/i.test(q) || cat.includes("health") || cat.includes("wellbeing")) {
+  if (cat.includes("health") || cat.includes("wellbeing") || /\b(health|fitness|wellness|wellbeing|weight loss|gym|nutrition|workout|diet|exercise|mental health|sleep|recovery|vitality)\b/i.test(q)) {
     return {
       jobKeywords: "",
       guideHeading: "Health, Vitality & Wellness Protocol Playbook",
@@ -342,8 +341,602 @@ export function getDomainRoadmapData(title: string, goal?: string, category?: st
     }
   }
 
-  // 1. ARTIFICIAL INTELLIGENCE / MACHINE LEARNING / DATA SCIENCE
-  if (/(ai|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|nlp|llm|computer vision|genai)/i.test(q)) {
+  // 0C. MONEY, FINANCE & INVESTMENT
+  if (cat.includes("money") || cat.includes("finance") || /\b(finance|financial|invest|investing|stock market|crypto|wealth|budget|budgeting|savings|debt|fire|emergency fund|real estate|portfolio|mutual funds)\b/i.test(q)) {
+    return {
+      jobKeywords: "Financial Analyst",
+      guideHeading: "Financial Independence & Wealth Building Playbook",
+      courses: [
+        {
+          title: "Bogleheads Investment Philosophy",
+          provider: "Bogleheads.org",
+          url: "https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy",
+          badge: "Gold Standard",
+        },
+        {
+          title: "Personal Finance & Wealth Masterclass",
+          provider: "Khan Academy",
+          url: "https://www.khanacademy.org/college-careers-more/personal-finance",
+          badge: "100% Free",
+        },
+        {
+          title: "Financial Markets by Robert Shiller",
+          provider: "Yale Online / Coursera",
+          url: "https://www.coursera.org/learn/financial-markets-global",
+          badge: "Yale University",
+        },
+        {
+          title: "Morningstar Investing Classroom",
+          provider: "Morningstar",
+          url: "https://www.morningstar.com/learn",
+          badge: "Asset Allocation",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Debt Elimination & 6-Month Emergency Reserve",
+        desc: "Automate 50/30/20 budget, eliminate high-interest debts via debt avalanche, and store 3-6 months living expenses in high-yield savings (HYSA).",
+      },
+      coursesTrack: {
+        title: "Curated Wealth Foundations & Market Lessons",
+        desc: "Bogleheads low-cost investing, Khan Academy personal finance, Yale financial markets, and Morningstar portfolio construction.",
+      },
+      phase2: {
+        title: "Phase 2: Automated Index Investing & Tax Shelters",
+        desc: "Maximize employer 401(k)/PF matches, contribute to Roth IRA / tax-advantaged accounts, and invest in low-cost total market index funds (S&P 500 / VTI).",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Asset Allocation & Compounding Horizon",
+        desc: "Model real returns accounting for inflation, analyze rebalancing rules across equities, bonds, and cash equivalents.",
+      },
+      phase4: {
+        title: "Phase 4: Multiple Income Streams & Asset Diversification",
+        desc: "Build secondary revenue channels (consulting, digital products, real estate syndication) to accelerate savings rate above 40%.",
+      },
+      phase5: {
+        title: "Phase 5: Financial Independence (FIRE) & Wealth Preservation",
+        desc: "Calculate safe withdrawal rate (3.5% - 4%), establish estate directives, and monitor net worth trajectory quarterly.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Accelerated Financial Freedom",
+          desc: "High savings rate, strong compound returns, and early financial independence milestones achieved well ahead of schedule.",
+        },
+        realistic: {
+          title: "Realistic: Solid Wealth Accumulation & Zero Bad Debt",
+          desc: "Consistent monthly investing, fully funded safety reserves, and reliable long-term portfolio growth.",
+        },
+        conservative: {
+          title: "Conservative: Protected Capital & Disciplined Reserves",
+          desc: "Complete safety of capital, inflation-protected liquidity, and guaranteed stability through market fluctuations.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Budgeting Rules:</strong> 50% Needs, 30% Wants, 20%+ Automated Savings and Investments.",
+          "<strong>Index Investing:</strong> Low-cost, broad-market index funds (VTI, VOO, VXUS) with expense ratios <0.05%.",
+          "<strong>Emergency Liquidity:</strong> 6 months of non-negotiable living expenses held in High-Yield Savings Accounts (HYSA) or liquid money market funds.",
+          "<strong>Compound Interest Equation:</strong> A = P(1 + r/n)^(nt) — consistent small monthly sums beat sporadic lump-sum market timing.",
+        ],
+        resumeRules: [
+          "<strong>Automate Payday:</strong> Direct transfer to savings and investment brokerages the day salary hits your account before spending.",
+          "<strong>Avoid Lifestyle Inflation:</strong> Direct at least 50% of every bonus or salary raise straight into investment assets.",
+          "<strong>Never Time the Market:</strong> Time in the market systematically outperforms attempting to time market peaks and troughs.",
+        ],
+        interviewQuestions: [
+          {
+            q: "What is the 4% Safe Withdrawal Rule in Financial Independence?",
+            a: "Derived from the Trinity Study: withdrawing 4% of an initial retirement portfolio adjusted annually for inflation historically sustained the portfolio for 30+ years across 95% of market periods.",
+          },
+          {
+            q: "How should an emergency fund be structured versus long-term investments?",
+            a: "Emergency funds prioritize capital preservation and instant liquidity (HYSA/Treasury bills), while long-term investments prioritize growth and inflation defense through broad equities.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 1. CLOUD INFRASTRUCTURE, DEVOPS & SRE (Evaluated BEFORE AI to avoid 'containers' false match)
+  if (/\b(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre|platform engineering|sysadmin|infrastructure|ci\/cd)\b/i.test(q)) {
+    return {
+      jobKeywords: "DevOps Cloud Engineer",
+      guideHeading: "Cloud & DevOps Engineering Playbook",
+      courses: [
+        {
+          title: "Introduction to Linux (LFS101x)",
+          provider: "Linux Foundation",
+          url: "https://www.edx.org/learn/linux/the-linux-foundation-introduction-to-linux",
+          badge: "Official Track",
+        },
+        {
+          title: "Docker & Kubernetes Full Course",
+          provider: "freeCodeCamp",
+          url: "https://www.freecodecamp.org/news/kubernetes-course/",
+          badge: "Hands-on Labs",
+        },
+        {
+          title: "AWS Solutions Architect Track",
+          provider: "AWS Skill Builder",
+          url: "https://explore.skillbuilder.aws/",
+          badge: "AWS Official",
+        },
+        {
+          title: "Terraform Associate Certification",
+          provider: "HashiCorp",
+          url: "https://developer.hashicorp.com/terraform/tutorials",
+          badge: "IaC Standard",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Linux Kernel, Shell Scripting & Networking",
+        desc: "Linux system administration, Bash automation, TCP/IP, DNS, SSL/TLS, reverse proxies (Nginx), and Git branching strategies",
+      },
+      coursesTrack: {
+        title: "Curated DevOps Labs & Certifications",
+        desc: "Linux Foundation LFS101x, freeCodeCamp Docker/K8s, AWS Skill Builder, HashiCorp Terraform Tutorials. Portals: LinkedIn, Wellfound.",
+      },
+      phase2: {
+        title: "Phase 2: Docker Containers & Kubernetes (K8s)",
+        desc: "Multi-stage Docker builds, image hardening, Kubernetes architecture (Pods, Deployments, Services, Ingress, Helm Charts, ConfigMaps)",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Cloud Market Intel (AWS / Terraform)",
+        desc: "78% of enterprise infrastructure roles require Docker, Kubernetes, Terraform IaC, and cloud provider certification.",
+      },
+      phase4: {
+        title: "Phase 4: GitOps & CI/CD Infrastructure Capstone",
+        desc: "Automated end-to-end CI/CD with GitHub Actions, ArgoCD, Terraform VPC/EKS provisioning on AWS, Prometheus & Grafana telemetry",
+      },
+      phase5: {
+        title: "Phase 5: ATS Resume & DevOps Interview Cracking",
+        desc: "Highlight AWS Solutions Architect or CKA credentials. Master: Pod lifecycle, Zero-downtime deployments, Terraform drift, DNS debugging.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: DevOps / Cloud Engineer Offer (6 Months)",
+          desc: "Secure high-value DevOps role managing production cloud infrastructure with automated CI/CD pipelines.",
+        },
+        realistic: {
+          title: "Realistic: Junior Cloud Operations / SysAdmin (6-8 Mo)",
+          desc: "Successful transition into cloud operations with certified AWS/Kubernetes foundations.",
+        },
+        conservative: {
+          title: "Conservative: IT Infrastructure Support Bridge",
+          desc: "Enter through IT systems administration or cloud helpdesk to build production operational credibility.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Operating Systems & Scripting:</strong> Linux (Ubuntu/Debian, RHEL), Bash/Shell scripting, Python for automation.",
+          "<strong>Containers & Orchestration:</strong> Docker, Docker Compose, Kubernetes (K8s), Helm, containerd.",
+          "<strong>Infrastructure as Code & Cloud:</strong> Terraform, Ansible, AWS (EC2, S3, IAM, VPC, EKS, RDS) or Azure/GCP.",
+          "<strong>CI/CD & Observability:</strong> GitHub Actions, GitLab CI, ArgoCD (GitOps), Prometheus, Grafana, ELK Stack.",
+        ],
+        resumeRules: [
+          "<strong>1-Page ATS Single-Column:</strong> Simple layout optimized for technical recruiter screening.",
+          "<strong>Production SLA & Deployment Metrics:</strong> <em>&quot;Automated deployment pipeline via GitHub Actions &amp; Terraform, cutting release cycle from 3 hours to 8 minutes with 99.9% uptime&quot;</em>.",
+          "<strong>Certifications First:</strong> Display AWS Certified Solutions Architect, CKA (Certified Kubernetes Administrator), or Terraform Associate prominently.",
+        ],
+        interviewQuestions: [
+          {
+            q: "Q1: What happens during a Kubernetes Pod CrashLoopBackOff and how do you debug it?",
+            a: "The container starts, fails, and exits repeatedly. Debug using: 1) kubectl describe pod <name> for OOMKilled or config errors, 2) kubectl logs <name> --previous for application stack traces, 3) verify readiness/liveness probes.",
+          },
+          {
+            q: "Q2: Compare Blue-Green vs Canary Deployment strategies.",
+            a: "Blue-Green maintains two identical environments and switches traffic instantly via DNS/router (instant rollback, 2x cost). Canary routes a small percentage (e.g. 5%) of traffic to the new version to validate before 100% rollout.",
+          },
+          {
+            q: "Q3: How does Terraform manage state and drift detection?",
+            a: "Terraform maps configuration to real-world resources via terraform.tfstate (stored remotely with S3 + DynamoDB locking). terraform plan compares the real infrastructure state against the state file to identify drift.",
+          },
+          {
+            q: "Q4: How do you achieve zero-downtime database schema migrations?",
+            a: "Use the expand-contract pattern: 1) Expand by adding the new column/table alongside the old, 2) Dual-write to both, 3) Backfill historical data, 4) Switch reads to new column, 5) Contract by dropping the old column.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 2. CYBERSECURITY & DEFENSE
+  if (/\b(cyber|cybersecurity|infosec|soc|siem|ethical hack|ethical hacking|penetration testing|pen test|network security|firewall)\b/i.test(q)) {
+    return {
+      jobKeywords: "Cybersecurity Analyst",
+      guideHeading: "Cybersecurity & Defense Playbook",
+      courses: [
+        {
+          title: "Pre-Security & Beginner Path",
+          provider: "TryHackMe",
+          url: "https://tryhackme.com/",
+          badge: "Interactive Labs",
+        },
+        {
+          title: "Web Security Academy",
+          provider: "PortSwigger",
+          url: "https://portswigger.net/web-security",
+          badge: "Burp Suite Labs",
+        },
+        {
+          title: "CompTIA Security+ Series",
+          provider: "Professor Messer",
+          url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-training-course/",
+          badge: "Certification",
+        },
+        {
+          title: "HTB Academy Penetration Testing",
+          provider: "Hack The Box",
+          url: "https://academy.hackthebox.com/",
+          badge: "Pro Labs",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Linux, Networking Protocols & Scripting",
+        desc: "OSI model, TCP/IP, packet analysis with Wireshark, Linux kernel administration, Python & Bash socket programming and automation",
+      },
+      coursesTrack: {
+        title: "Hands-on Security Academies & Certifications",
+        desc: "TryHackMe Pre-Security, PortSwigger Web Security Academy, Professor Messer CompTIA Security+, Hack The Box. Portals: LinkedIn, Naukri.",
+      },
+      phase2: {
+        title: "Phase 2: Web App Security & OWASP Top 10",
+        desc: "Hands-on exploitation: SQL injection, XSS, CSRF, SSRF, IDOR, authentication bypass using Burp Suite and PortSwigger labs",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Security Operations & SOC Demand",
+        desc: "Zero unemployment rate across enterprise cybersecurity; massive recruiter search volume for Security+ and certified analysts.",
+      },
+      phase4: {
+        title: "Phase 4: Network Penetration & Active Directory Labs",
+        desc: "Metasploit, Nmap reconnaissance, privilege escalation (Linux/Windows), Active Directory attacks on TryHackMe / Hack The Box",
+      },
+      phase5: {
+        title: "Phase 5: ATS Resume, Security+ & Interview Prep",
+        desc: "Highlight CompTIA Security+ or eJPT. Master: Encryption algorithms, SQLi vs XSS mitigation, PICERL incident response, Wireshark logs.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Penetration Tester / SOC Analyst (6 Mo)",
+          desc: "Secure offensive or defensive cybersecurity role with verified lab rankings and industry certification.",
+        },
+        realistic: {
+          title: "Realistic: Junior Information Security Associate (6-8 Mo)",
+          desc: "Transition into security operations center (SOC) handling incident triage and vulnerability scanning.",
+        },
+        conservative: {
+          title: "Conservative: IT Network Security Support Bridge",
+          desc: "Enter through IT network administration or hardware support to build foundational infrastructure defense credentials.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Operating Systems:</strong> Kali Linux, Parrot OS, Windows Server / Active Directory.",
+          "<strong>Security Tools:</strong> Burp Suite Pro/Community, Wireshark, Nmap, Metasploit, Nessus, Ghidra, John the Ripper.",
+          "<strong>Scripting & Automation:</strong> Python (Scapy, requests, socket), Bash, PowerShell for security automation.",
+          "<strong>Certifications:</strong> CompTIA Security+, eJPT, CEH, BTL1, OSCP (advanced).",
+        ],
+        resumeRules: [
+          "<strong>Lab Rankings & CVEs:</strong> Highlight TryHackMe top 5% or Hack The Box profile badges prominently.",
+          "<strong>Write-ups & Disclosures:</strong> Link to detailed vulnerability write-ups or responsible disclosure confirmations.",
+          "<strong>Certifications Section:</strong> List CompTIA Security+ or vendor credentials with verification IDs.",
+        ],
+        interviewQuestions: [
+          {
+            q: "Q1: Explain the difference between Symmetric and Asymmetric encryption, and how TLS uses both.",
+            a: "Symmetric uses one shared key for encryption/decryption (fast: AES). Asymmetric uses public/private key pairs (slow: RSA/ECC). TLS uses asymmetric encryption for key exchange and authentication, then switches to symmetric AES for bulk session data.",
+          },
+          {
+            q: "Q2: How do you properly prevent SQL Injection and Cross-Site Scripting (XSS)?",
+            a: "SQL Injection: Use parameterized queries / prepared statements (never string concatenation) and ORMs. XSS: Context-aware output encoding, sanitize HTML with DOMPurify, set Content-Security-Policy (CSP) headers, and use HTTP-only cookies.",
+          },
+          {
+            q: "Q3: Walk through the NIST / PICERL Incident Response lifecycle.",
+            a: "Preparation ➔ Identification (detection & triage) ➔ Containment (isolation of infected host) ➔ Eradication (root cause removal) ➔ Recovery (restoration to production) ➔ Lessons Learned (post-mortem).",
+          },
+        ],
+      },
+    }
+  }
+
+  // 3. FULL-STACK JAVA & ENTERPRISE ARCHITECTURE
+  if (/\b(java|spring|spring boot|hibernate|jpa|jvm|microservices)\b/i.test(q)) {
+    return {
+      jobKeywords: "Java Full Stack Developer",
+      guideHeading: "Full-Stack Java & Enterprise Engineering Playbook",
+      courses: [
+        {
+          title: "Java Programming Masterclass",
+          provider: "Tim Buchalka / Oracle Standard",
+          url: "https://dev.java/learn/",
+          badge: "Java 21 LTS",
+        },
+        {
+          title: "Spring Academy Official Tracks",
+          provider: "Spring Academy (VMware)",
+          url: "https://spring.academy/",
+          badge: "Spring Official",
+        },
+        {
+          title: "Hibernate & Spring Data JPA",
+          provider: "Baeldung Tutorials",
+          url: "https://www.baeldung.com/learn-spring-course",
+          badge: "Industry Guide",
+        },
+        {
+          title: "Microservices with Spring Boot & Docker",
+          provider: "freeCodeCamp",
+          url: "https://www.freecodecamp.org/news/microservices-with-spring-boot-and-spring-cloud/",
+          badge: "Hands-on Microservices",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Core Java 21, OOP, Collections & DSA",
+        desc: "Java 21 LTS features (Records, Pattern Matching, Virtual Threads), OOP design principles, Collections Framework, Multithreading, and LeetCode Medium DSA",
+      },
+      coursesTrack: {
+        title: "Curated Java Tracks & Oracle Standards",
+        desc: "Oracle Official Dev.Java, Spring Academy, Baeldung Spring Guides, and freeCodeCamp Spring Cloud. Portals: LinkedIn, Naukri, Wellfound.",
+      },
+      phase2: {
+        title: "Phase 2: Spring Boot 3, REST APIs & Spring Data JPA",
+        desc: "Spring Boot 3 architecture, Dependency Injection, Spring Security with JWT, Hibernate/JPA entity relationships, connection pooling (HikariCP), and PostgreSQL/MySQL",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Java Enterprise Market Intel (Naukri & LinkedIn)",
+        desc: "Immense enterprise banking, fintech, and enterprise product hiring demand for Java + Spring Boot microservices engineers.",
+      },
+      phase4: {
+        title: "Phase 4: Microservices, Kafka & Docker Capstones",
+        desc: "Build 2 distributed production systems: 1) FinTech Banking API with Spring Cloud Gateway, Eureka, Resilience4j, and Kafka event streaming, 2) E-Commerce backend with Docker & Redis",
+      },
+      phase5: {
+        title: "Phase 5: ATS Java Resume & Enterprise Interview Cracking",
+        desc: "Metrics-driven ATS resume highlighting latency reduction and throughput. Master: JVM memory model, G1GC/ZGC, Bean lifecycle, Transactional isolation, and Spring Security filters.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Full-Stack Java Developer Offer (6 Months)",
+          desc: "Secure enterprise software engineering role with competitive package and high-scale Spring Boot capstones.",
+        },
+        realistic: {
+          title: "Realistic: Associate Java Software Engineer (6-8 Months)",
+          desc: "Successful transition into Java backend/full-stack team with validated Spring Boot, JPA, and SQL proficiency.",
+        },
+        conservative: {
+          title: "Conservative: Junior Backend Developer Bridge",
+          desc: "Entry-level backend or QA automation bridge role building production Java service reliability.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Languages & Runtimes:</strong> Java 21 LTS (Streams, Records, Pattern matching, Sealed classes, Virtual Threads), SQL.",
+          "<strong>Enterprise Frameworks:</strong> Spring Boot 3, Spring Security, Spring Cloud, Hibernate ORM, Spring Data JPA.",
+          "<strong>Databases & Messaging:</strong> PostgreSQL, MySQL, Redis (Caching), Apache Kafka / RabbitMQ.",
+          "<strong>Testing & Build Tools:</strong> JUnit 5, Mockito, Testcontainers, Maven / Gradle, Docker, Git/GitHub.",
+        ],
+        resumeRules: [
+          "<strong>1-Page ATS Single-Column:</strong> Clean layout formatted for technical recruiter and enterprise screening portals.",
+          "<strong>Throughput & Concurrency Metrics:</strong> <em>&quot;Engineered Spring Boot microservice processing 3,500 requests/sec with &lt;45ms p99 latency using Virtual Threads &amp; Redis caching&quot;</em>.",
+          "<strong>Architecture Diagrams:</strong> Include clickable GitHub repo links containing clear microservices architecture diagrams and Swagger/OpenAPI documentation.",
+        ],
+        interviewQuestions: [
+          {
+            q: "Q1: Explain the JVM Memory Model (Heap, Stack, Metaspace) and how Garbage Collection works.",
+            a: "Stack stores primitive variables and method call frames (thread-specific). Heap stores objects and is managed by Garbage Collection (G1GC, ZGC) divided into Young and Old generations. Metaspace stores class metadata.",
+          },
+          {
+            q: "Q2: How does Spring Dependency Injection and the Bean Lifecycle work?",
+            a: "Spring IoC container instantiates beans via reflection, injects dependencies (@Autowired/@RequiredArgsConstructor), calls @PostConstruct, makes bean ready for use, and invokes @PreDestroy on shutdown.",
+          },
+          {
+            q: "Q3: How do you identify and resolve the Hibernate N+1 Query Problem?",
+            a: "Occurs when fetching parent entities causes N individual queries for child collections. Resolve using: 1) JOIN FETCH in JPQL, 2) @EntityGraph to declare fetch paths, or 3) BatchSize annotation.",
+          },
+          {
+            q: "Q4: Compare Monolithic vs Microservices architecture and how the Saga Pattern manages distributed transactions.",
+            a: "Monoliths have single deployment and shared DB; Microservices are independently deployed with decentralized data. Saga coordinates distributed transactions via Choreography (events) or Orchestration (central coordinator) with compensating transactions for rollbacks.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 4. MOBILE APP DEVELOPMENT (FLUTTER / REACT NATIVE / IOS / ANDROID)
+  if (/\b(mobile|flutter|react native|ios|swift|android|kotlin|app developer)\b/i.test(q)) {
+    return {
+      jobKeywords: "Mobile App Developer",
+      guideHeading: "Mobile App Development Playbook",
+      courses: [
+        {
+          title: "Flutter & Dart Complete Guide",
+          provider: "Flutter.dev",
+          url: "https://docs.flutter.dev/get-started/codelab",
+          badge: "Google Official",
+        },
+        {
+          title: "React Native Core Architecture",
+          provider: "React Native Docs",
+          url: "https://reactnative.dev/docs/getting-started",
+          badge: "Open Source",
+        },
+        {
+          title: "Develop in Swift Tutorials",
+          provider: "Apple Developer",
+          url: "https://developer.apple.com/tutorials/develop-in-swift",
+          badge: "Apple Official",
+        },
+        {
+          title: "Android Basics in Kotlin",
+          provider: "Google Developers",
+          url: "https://developer.android.com/courses/android-basics-kotlin/course",
+          badge: "Android Official",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Mobile UI Architecture & State Management",
+        desc: "Flutter & Dart or React Native & TypeScript. Responsive layouts, navigation routers, state management (Bloc/Provider or Zustand)",
+      },
+      coursesTrack: {
+        title: "Official Mobile Guides & Learning Tracks",
+        desc: "Flutter.dev Official Codelab, React Native Documentation, Apple Develop in Swift, Google Android Kotlin. Portals: LinkedIn, Internshala.",
+      },
+      phase2: {
+        title: "Phase 2: Native APIs, Local SQLite & Offline Sync",
+        desc: "Camera, GPS geolocation, push notifications, offline local database (Hive/SQLite/WatermelonDB), background synchronization",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Mobile Market Intel (iOS & Android)",
+        desc: "High demand for cross-platform developers capable of shipping store-ready apps with smooth 60fps animations.",
+      },
+      phase4: {
+        title: "Phase 4: 2 Published Apps on App Store & Play Store",
+        desc: "Build, sign, and publish 2 production mobile applications: 1) Real-time collaborative mobile tool, 2) Full booking/e-commerce app",
+      },
+      phase5: {
+        title: "Phase 5: ATS Resume & Mobile Developer Interview Prep",
+        desc: "1-page ATS resume with direct Play Store / TestFlight download badges. Master: Widget lifecycle, JSI bridge, memory leaks, push alerts.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Mobile App Developer Offer (6 Months)",
+          desc: "Secure mobile developer position with live published apps on Google Play Store and Apple App Store.",
+        },
+        realistic: {
+          title: "Realistic: Junior Mobile Engineer (6-8 Months)",
+          desc: "Transition into mobile team with validated cross-platform architecture and clean UI portfolio.",
+        },
+        conservative: {
+          title: "Conservative: Mobile Freelance / Internship Bridge",
+          desc: "Build client apps or secure mobile internships on Internshala to gain verified commercial production proof.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Cross-Platform Frameworks:</strong> Flutter (Dart), React Native (TypeScript, JavaScript).",
+          "<strong>Native Languages:</strong> Swift / SwiftUI (iOS), Kotlin / Jetpack Compose (Android).",
+          "<strong>Local Storage & Backend:</strong> SQLite, Hive, Realm, Firebase (Auth, Firestore, Cloud Messaging), REST APIs.",
+          "<strong>Mobile Tooling & CI:</strong> Xcode, Android Studio, Fastlane, GitHub Actions for Mobile CI/CD, TestFlight, Play Console.",
+        ],
+        resumeRules: [
+          "<strong>Direct Store Links:</strong> Prominently include clickable badges to live Google Play Store and iOS App Store apps.",
+          "<strong>Performance Metrics:</strong> <em>&quot;Optimized mobile app rendering to maintain stable 60fps across 15+ low-end Android devices with 4.8-star rating&quot;</em>.",
+          "<strong>Clean Architecture:</strong> Emphasize MVVM / BLoC separation and thorough unit test coverage.",
+        ],
+        interviewQuestions: [
+          {
+            q: "Q1: Explain the Flutter Widget Lifecycle (or React Native component lifecycle).",
+            a: "In Flutter: createState ➔ initState ➔ didChangeDependencies ➔ build ➔ didUpdateWidget ➔ deactivate ➔ dispose. Expensive operations should always run in initState and cleanup in dispose.",
+          },
+          {
+            q: "Q2: How does the new React Native Architecture (Fabric & TurboModules) improve performance?",
+            a: "It replaces the asynchronous JSON bridge with the JavaScript Interface (JSI), allowing C++ and JavaScript to invoke native methods directly in memory synchronously without serialization overhead.",
+          },
+          {
+            q: "Q3: How do you identify and fix memory leaks in mobile applications?",
+            a: "Use Dart DevTools or Xcode Instruments / Android Profiler to inspect memory allocation graphs. Common culprits: uncancelled stream subscriptions, unremoved event listeners, and holding static contexts.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 5. UI/UX & PRODUCT DESIGN
+  if (/\b(ui|ux|ui\/ux|figma|product design|wireframe|wireframes|prototype|prototyping|user research|interaction design)\b/i.test(q)) {
+    return {
+      jobKeywords: "UI UX Product Designer",
+      guideHeading: "UI/UX & Product Design Playbook",
+      courses: [
+        {
+          title: "Figma for Beginners Official Series",
+          provider: "Figma Official",
+          url: "https://help.figma.com/hc/en-us/categories/360002051613-Get-started",
+          badge: "Figma Standard",
+        },
+        {
+          title: "Google UX Design Professional Certificate",
+          provider: "Google on Coursera",
+          url: "https://www.coursera.org/professional-certificates/google-ux-design",
+          badge: "Accredited",
+        },
+        {
+          title: "UX Research & Heuristics",
+          provider: "Nielsen Norman Group (NN/g)",
+          url: "https://www.nngroup.com/articles/",
+          badge: "Gold Standard",
+        },
+        {
+          title: "Interaction Design Foundation Courses",
+          provider: "IxDF",
+          url: "https://www.interaction-design.org/",
+          badge: "Design Rigor",
+        },
+      ],
+      phase1: {
+        title: "Phase 1: Figma Tooling, Design Systems & Visual Hierarchy",
+        desc: "Figma auto-layout, components, variants, typography scales, 8pt spatial grid, color theory, WCAG contrast standards, and accessibility",
+      },
+      coursesTrack: {
+        title: "Curated Design Academies & Figma Resources",
+        desc: "Figma Official Learn, Google UX Certificate on Coursera, Nielsen Norman Group articles, and Interaction Design Foundation tracks.",
+      },
+      phase2: {
+        title: "Phase 2: User Research, Information Architecture & Wireframing",
+        desc: "Conduct user interviews, synthesize empathy maps and personas, user flows, site mapping, and low-fidelity paper and digital wireframing",
+      },
+      marketAnalysis: {
+        title: "Phase 3: Design Market Intel & Portfolio Standards",
+        desc: "High demand for product designers with proven problem-solving case studies over superficial Dribbble mockups.",
+      },
+      phase4: {
+        title: "Phase 4: 2 End-to-End Responsive Product Case Studies",
+        desc: "Design and test 2 comprehensive products: 1) Complex SaaS B2B dashboard with multi-state components, 2) Consumer mobile app with micro-interactions and usability testing with 5 users",
+      },
+      phase5: {
+        title: "Phase 5: Design Portfolio Presentation & Whiteboard Challenge",
+        desc: "Polished portfolio with problem, research, iterations, user testing feedback, and final impact metrics. Master whiteboard design challenge frameworks.",
+      },
+      outcomes: {
+        optimistic: {
+          title: "Optimistic: Product Designer / UX Offer (6 Months)",
+          desc: "Secure UX/Product Designer position with a standout portfolio demonstrating clear business impact and user problem resolution.",
+        },
+        realistic: {
+          title: "Realistic: Junior UI/UX Designer (6-8 Months)",
+          desc: "Transition into product team with solid Figma component foundations and structured design thinking case studies.",
+        },
+        conservative: {
+          title: "Conservative: Design Intern / Freelance Bridge",
+          desc: "Complete redesign client gigs or secure design internships on Internshala to build verified commercial proof of work.",
+        },
+      },
+      guide: {
+        languagesAndTools: [
+          "<strong>Design & Prototyping:</strong> Figma (Auto-layout, Components, Variants, Variables), FigJam, Principle.",
+          "<strong>Design Systems:</strong> Material Design 3, Apple Human Interface Guidelines (HIG), Tailwind UI tokens.",
+          "<strong>User Research & Testing:</strong> Maze, Lookback, Google Forms, UserTesting, Hotjar.",
+          "<strong>Handoff & Specs:</strong> Figma Dev Mode, Storybook basics, Notion case study documentation.",
+        ],
+        resumeRules: [
+          "<strong>Link to Live Portfolio First:</strong> Place your portfolio URL (Framer/Webflow/Notion) at the very top of your resume.",
+          "<strong>Focus on Outcomes over Pixels:</strong> <em>&quot;Redesigned checkout funnel in Figma, reducing user drop-off by 28% across 1,200 tested user sessions&quot;</em>.",
+          "<strong>Show Process Iteration:</strong> Include failed iterations and user testing quotes showing why design decisions changed.",
+        ],
+        interviewQuestions: [
+          {
+            q: "Q1: Walk me through your design process from ambiguous problem to final handoff.",
+            a: "Double Diamond framework: Discover (user interviews, research) ➔ Define (problem statement, personas) ➔ Develop (wireframes, low-fi prototypes) ➔ Deliver (high-fi testing, design system handoff with tokens).",
+          },
+          {
+            q: "Q2: How do you handle pushback or conflicting feedback from engineers and product managers?",
+            a: "Ground discussions in user research data and business constraints. Facilitate a quick usability test or propose a phased rollout to validate with real metrics rather than personal opinions.",
+          },
+        ],
+      },
+    }
+  }
+
+  // 6. ARTIFICIAL INTELLIGENCE / MACHINE LEARNING / DATA SCIENCE
+  if (/\b(ai|genai|llm|nlp)\b|artificial intelligence|machine learning|deep learning|data science|data scientist|data analyst|computer vision/i.test(q)) {
     return {
       jobKeywords: "AI Machine Learning Engineer",
       guideHeading: "AI & Machine Learning Playbook",
@@ -450,309 +1043,8 @@ export function getDomainRoadmapData(title: string, goal?: string, category?: st
     }
   }
 
-  // 2. CLOUD INFRASTRUCTURE, DEVOPS & SRE
-  if (/(devops|cloud|aws|azure|gcp|docker|kubernetes|terraform|sre|platform engineering|sysadmin)/i.test(q)) {
-    return {
-      jobKeywords: "DevOps Cloud Engineer",
-      guideHeading: "Cloud & DevOps Engineering Playbook",
-      courses: [
-        {
-          title: "Introduction to Linux (LFS101x)",
-          provider: "Linux Foundation",
-          url: "https://www.edx.org/learn/linux/the-linux-foundation-introduction-to-linux",
-          badge: "Official Track",
-        },
-        {
-          title: "Docker & Kubernetes Full Course",
-          provider: "freeCodeCamp",
-          url: "https://www.freecodecamp.org/news/kubernetes-course/",
-          badge: "Hands-on Labs",
-        },
-        {
-          title: "AWS Solutions Architect Track",
-          provider: "AWS Skill Builder",
-          url: "https://explore.skillbuilder.aws/",
-          badge: "AWS Official",
-        },
-        {
-          title: "Terraform Associate Certification",
-          provider: "HashiCorp",
-          url: "https://developer.hashicorp.com/terraform/tutorials",
-          badge: "IaC Standard",
-        },
-      ],
-      phase1: {
-        title: "Phase 1: Linux Kernel, Shell Scripting & Networking",
-        desc: "Linux system administration, Bash automation, TCP/IP, DNS, SSL/TLS, reverse proxies (Nginx), and Git branching strategies",
-      },
-      coursesTrack: {
-        title: "Curated DevOps Labs & Certifications",
-        desc: "Linux Foundation LFS101x, freeCodeCamp Docker/K8s, AWS Skill Builder, HashiCorp Terraform Tutorials. Portals: LinkedIn, Wellfound.",
-      },
-      phase2: {
-        title: "Phase 2: Docker Containers & Kubernetes (K8s)",
-        desc: "Multi-stage Docker builds, image hardening, Kubernetes architecture (Pods, Deployments, Services, Ingress, Helm Charts, ConfigMaps)",
-      },
-      marketAnalysis: {
-        title: "Phase 3: Cloud Market Intel (AWS / Terraform)",
-        desc: "78% of enterprise infrastructure roles require Docker, Kubernetes, Terraform IaC, and cloud provider certification.",
-      },
-      phase4: {
-        title: "Phase 4: GitOps & CI/CD Infrastructure Capstone",
-        desc: "Automated end-to-end CI/CD with GitHub Actions, ArgoCD, Terraform VPC/EKS provisioning on AWS, Prometheus & Grafana telemetry",
-      },
-      phase5: {
-        title: "Phase 5: ATS Resume & DevOps Interview Cracking",
-        desc: "Highlight AWS Solutions Architect or CKA credentials. Master: Pod lifecycle, Zero-downtime deployments, Terraform drift, DNS debugging.",
-      },
-      outcomes: {
-        optimistic: {
-          title: "Optimistic: DevOps / Cloud Engineer Offer (6 Months)",
-          desc: "Secure high-value DevOps role managing production cloud infrastructure with automated CI/CD pipelines.",
-        },
-        realistic: {
-          title: "Realistic: Junior Cloud Operations / SysAdmin (6-8 Mo)",
-          desc: "Successful transition into cloud operations with certified AWS/Kubernetes foundations.",
-        },
-        conservative: {
-          title: "Conservative: IT Infrastructure Support Bridge",
-          desc: "Enter through IT systems administration or cloud helpdesk to build production operational credibility.",
-        },
-      },
-      guide: {
-        languagesAndTools: [
-          "<strong>Operating Systems & Scripting:</strong> Linux (Ubuntu/Debian, RHEL), Bash/Shell scripting, Python for automation.",
-          "<strong>Containers & Orchestration:</strong> Docker, Docker Compose, Kubernetes (K8s), Helm, containerd.",
-          "<strong>Infrastructure as Code & Cloud:</strong> Terraform, Ansible, AWS (EC2, S3, IAM, VPC, EKS, RDS) or Azure/GCP.",
-          "<strong>CI/CD & Observability:</strong> GitHub Actions, GitLab CI, ArgoCD (GitOps), Prometheus, Grafana, ELK Stack.",
-        ],
-        resumeRules: [
-          "<strong>1-Page ATS Single-Column:</strong> Simple layout optimized for technical recruiter screening.",
-          "<strong>Production SLA & Deployment Metrics:</strong> <em>&quot;Automated deployment pipeline via GitHub Actions &amp; Terraform, cutting release cycle from 3 hours to 8 minutes with 99.9% uptime&quot;</em>.",
-          "<strong>Certifications First:</strong> Display AWS Certified Solutions Architect, CKA (Certified Kubernetes Administrator), or Terraform Associate prominently.",
-        ],
-        interviewQuestions: [
-          {
-            q: "Q1: What happens during a Kubernetes Pod CrashLoopBackOff and how do you debug it?",
-            a: "The container starts, fails, and exits repeatedly. Debug using: 1) kubectl describe pod <name> for OOMKilled or config errors, 2) kubectl logs <name> --previous for application stack traces, 3) verify readiness/liveness probes.",
-          },
-          {
-            q: "Q2: Compare Blue-Green vs Canary Deployment strategies.",
-            a: "Blue-Green maintains two identical environments and switches traffic instantly via DNS/router (instant rollback, 2x cost). Canary routes a small percentage (e.g. 5%) of traffic to the new version to validate before 100% rollout.",
-          },
-          {
-            q: "Q3: How does Terraform manage state and drift detection?",
-            a: "Terraform maps configuration to real-world resources via terraform.tfstate (stored remotely with S3 + DynamoDB locking). terraform plan compares the real infrastructure state against the state file to identify drift.",
-          },
-          {
-            q: "Q4: How do you achieve zero-downtime database schema migrations?",
-            a: "Use the expand-contract pattern: 1) Expand by adding the new column/table alongside the old, 2) Dual-write to both, 3) Backfill historical data, 4) Switch reads to new column, 5) Contract by dropping the old column.",
-          },
-        ],
-      },
-    }
-  }
-
-  // 3. MOBILE APP DEVELOPMENT (FLUTTER / REACT NATIVE / IOS / ANDROID)
-  if (/(mobile|flutter|react native|ios|swift|android|kotlin|app dev)/i.test(q)) {
-    return {
-      jobKeywords: "Mobile App Developer",
-      guideHeading: "Mobile App Development Playbook",
-      courses: [
-        {
-          title: "Flutter & Dart Complete Guide",
-          provider: "Flutter.dev",
-          url: "https://docs.flutter.dev/get-started/codelab",
-          badge: "Google Official",
-        },
-        {
-          title: "React Native Core Architecture",
-          provider: "React Native Docs",
-          url: "https://reactnative.dev/docs/getting-started",
-          badge: "Open Source",
-        },
-        {
-          title: "Develop in Swift Tutorials",
-          provider: "Apple Developer",
-          url: "https://developer.apple.com/tutorials/develop-in-swift",
-          badge: "Apple Official",
-        },
-        {
-          title: "Android Basics in Kotlin",
-          provider: "Google Developers",
-          url: "https://developer.android.com/courses/android-basics-kotlin/course",
-          badge: "Android Official",
-        },
-      ],
-      phase1: {
-        title: "Phase 1: Mobile UI Architecture & State Management",
-        desc: "Flutter & Dart or React Native & TypeScript. Responsive layouts, navigation routers, state management (Bloc/Provider or Zustand)",
-      },
-      coursesTrack: {
-        title: "Official Mobile Guides & Learning Tracks",
-        desc: "Flutter.dev Official Codelab, React Native Documentation, Apple Develop in Swift, Google Android Kotlin. Portals: LinkedIn, Internshala.",
-      },
-      phase2: {
-        title: "Phase 2: Native APIs, Local SQLite & Offline Sync",
-        desc: "Camera, GPS geolocation, push notifications, offline local database (Hive/SQLite/WatermelonDB), background synchronization",
-      },
-      marketAnalysis: {
-        title: "Phase 3: Mobile Market Intel (iOS & Android)",
-        desc: "High demand for cross-platform developers capable of shipping store-ready apps with smooth 60fps animations.",
-      },
-      phase4: {
-        title: "Phase 4: 2 Published Apps on App Store & Play Store",
-        desc: "Build, sign, and publish 2 production mobile applications: 1) Real-time collaborative mobile tool, 2) Full booking/e-commerce app",
-      },
-      phase5: {
-        title: "Phase 5: ATS Resume & Mobile Developer Interview Prep",
-        desc: "1-page ATS resume with direct Play Store / TestFlight download badges. Master: Widget lifecycle, JSI bridge, memory leaks, push alerts.",
-      },
-      outcomes: {
-        optimistic: {
-          title: "Optimistic: Mobile App Developer Offer (6 Months)",
-          desc: "Secure mobile developer position with live published apps on Google Play Store and Apple App Store.",
-        },
-        realistic: {
-          title: "Realistic: Junior Mobile Engineer (6-8 Months)",
-          desc: "Transition into mobile team with validated cross-platform architecture and clean UI portfolio.",
-        },
-        conservative: {
-          title: "Conservative: Mobile Freelance / Internship Bridge",
-          desc: "Build client apps or secure mobile internships on Internshala to gain verified commercial production proof.",
-        },
-      },
-      guide: {
-        languagesAndTools: [
-          "<strong>Cross-Platform Frameworks:</strong> Flutter (Dart), React Native (TypeScript, JavaScript).",
-          "<strong>Native Languages:</strong> Swift / SwiftUI (iOS), Kotlin / Jetpack Compose (Android).",
-          "<strong>Local Storage & Backend:</strong> SQLite, Hive, Realm, Firebase (Auth, Firestore, Cloud Messaging), REST APIs.",
-          "<strong>Mobile Tooling & CI:</strong> Xcode, Android Studio, Fastlane, GitHub Actions for Mobile CI/CD, TestFlight, Play Console.",
-        ],
-        resumeRules: [
-          "<strong>Direct Store Links:</strong> Prominently include clickable badges to live Google Play Store and iOS App Store apps.",
-          "<strong>Performance Metrics:</strong> <em>&quot;Optimized mobile app rendering to maintain stable 60fps across 15+ low-end Android devices with 4.8-star rating&quot;</em>.",
-          "<strong>Clean Architecture:</strong> Emphasize MVVM / BLoC separation and thorough unit test coverage.",
-        ],
-        interviewQuestions: [
-          {
-            q: "Q1: Explain the Flutter Widget Lifecycle (or React Native component lifecycle).",
-            a: "In Flutter: createState ➔ initState ➔ didChangeDependencies ➔ build ➔ didUpdateWidget ➔ deactivate ➔ dispose. Expensive operations should always run in initState and cleanup in dispose.",
-          },
-          {
-            q: "Q2: How does the new React Native Architecture (Fabric & TurboModules) improve performance?",
-            a: "It replaces the asynchronous JSON bridge with the JavaScript Interface (JSI), allowing C++ and JavaScript to invoke native methods directly in memory synchronously without serialization overhead.",
-          },
-          {
-            q: "Q3: How do you identify and fix memory leaks in mobile applications?",
-            a: "Use Dart DevTools or Xcode Instruments / Android Profiler to inspect memory allocation graphs. Common culprits: uncancelled stream subscriptions, unremoved event listeners, and holding static contexts.",
-          },
-        ],
-      },
-    }
-  }
-
-  // 4. CYBERSECURITY & ETHICAL HACKING
-  if (/(cyber|security|hacking|penetration|infosec|soc|ethical hack|network security)/i.test(q)) {
-    return {
-      jobKeywords: "Cybersecurity Analyst",
-      guideHeading: "Cybersecurity & Defense Playbook",
-      courses: [
-        {
-          title: "Pre-Security & Beginner Path",
-          provider: "TryHackMe",
-          url: "https://tryhackme.com/",
-          badge: "Interactive Labs",
-        },
-        {
-          title: "Web Security Academy",
-          provider: "PortSwigger",
-          url: "https://portswigger.net/web-security",
-          badge: "Burp Suite Labs",
-        },
-        {
-          title: "CompTIA Security+ Series",
-          provider: "Professor Messer",
-          url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-training-course/",
-          badge: "Certification",
-        },
-        {
-          title: "HTB Academy Penetration Testing",
-          provider: "Hack The Box",
-          url: "https://academy.hackthebox.com/",
-          badge: "Pro Labs",
-        },
-      ],
-      phase1: {
-        title: "Phase 1: Linux, Networking Protocols & Scripting",
-        desc: "OSI model, TCP/IP, packet analysis with Wireshark, Linux kernel administration, Python & Bash socket programming and automation",
-      },
-      coursesTrack: {
-        title: "Hands-on Security Academies & Certifications",
-        desc: "TryHackMe Pre-Security, PortSwigger Web Security Academy, Professor Messer CompTIA Security+, Hack The Box. Portals: LinkedIn, Naukri.",
-      },
-      phase2: {
-        title: "Phase 2: Web App Security & OWASP Top 10",
-        desc: "Hands-on exploitation: SQL injection, XSS, CSRF, SSRF, IDOR, authentication bypass using Burp Suite and PortSwigger labs",
-      },
-      marketAnalysis: {
-        title: "Phase 3: Security Operations & SOC Demand",
-        desc: "Zero unemployment rate across enterprise cybersecurity; massive recruiter search volume for Security+ and certified analysts.",
-      },
-      phase4: {
-        title: "Phase 4: Network Penetration & Active Directory Labs",
-        desc: "Metasploit, Nmap reconnaissance, privilege escalation (Linux/Windows), Active Directory attacks on TryHackMe / Hack The Box",
-      },
-      phase5: {
-        title: "Phase 5: ATS Resume, Security+ & Interview Prep",
-        desc: "Highlight CompTIA Security+ or eJPT. Master: Encryption algorithms, SQLi vs XSS mitigation, PICERL incident response, Wireshark logs.",
-      },
-      outcomes: {
-        optimistic: {
-          title: "Optimistic: Penetration Tester / SOC Analyst (6 Mo)",
-          desc: "Secure offensive or defensive cybersecurity role with verified lab rankings and industry certification.",
-        },
-        realistic: {
-          title: "Realistic: Junior Information Security Associate (6-8 Mo)",
-          desc: "Transition into security operations center (SOC) handling incident triage and vulnerability scanning.",
-        },
-        conservative: {
-          title: "Conservative: IT Network Security Support Bridge",
-          desc: "Enter through IT network administration or hardware support to build foundational infrastructure defense credentials.",
-        },
-      },
-      guide: {
-        languagesAndTools: [
-          "<strong>Operating Systems:</strong> Kali Linux, Parrot OS, Windows Server / Active Directory.",
-          "<strong>Security Tools:</strong> Burp Suite Pro/Community, Wireshark, Nmap, Metasploit, Nessus, Ghidra, John the Ripper.",
-          "<strong>Scripting & Automation:</strong> Python (Scapy, requests, socket), Bash, PowerShell for security automation.",
-          "<strong>Certifications:</strong> CompTIA Security+, eJPT, CEH, BTL1, OSCP (advanced).",
-        ],
-        resumeRules: [
-          "<strong>Lab Rankings & CVEs:</strong> Highlight TryHackMe top 5% or Hack The Box profile badges prominently.",
-          "<strong>Write-ups & Disclosures:</strong> Link to detailed vulnerability write-ups or responsible disclosure confirmations.",
-          "<strong>Certifications Section:</strong> List CompTIA Security+ or vendor credentials with verification IDs.",
-        ],
-        interviewQuestions: [
-          {
-            q: "Q1: Explain the difference between Symmetric and Asymmetric encryption, and how TLS uses both.",
-            a: "Symmetric uses one shared key for encryption/decryption (fast: AES). Asymmetric uses public/private key pairs (slow: RSA/ECC). TLS uses asymmetric encryption for key exchange and authentication, then switches to symmetric AES for bulk session data.",
-          },
-          {
-            q: "Q2: How do you properly prevent SQL Injection and Cross-Site Scripting (XSS)?",
-            a: "SQL Injection: Use parameterized queries / prepared statements (never string concatenation) and ORMs. XSS: Context-aware output encoding, sanitize HTML with DOMPurify, set Content-Security-Policy (CSP) headers, and use HTTP-only cookies.",
-          },
-          {
-            q: "Q3: Walk through the NIST / PICERL Incident Response lifecycle.",
-            a: "Preparation ➔ Identification (detection & triage) ➔ Containment (isolation of infected host) ➔ Eradication (root cause removal) ➔ Recovery (restoration to production) ➔ Lessons Learned (post-mortem).",
-          },
-        ],
-      },
-    }
-  }
-
-  // 5. FULL STACK / WEB DEVELOPMENT (when user explicitly requests developer / coding)
-  if (/(full stack|full-stack|frontend|backend|web dev|javascript|react|node|typescript|mern|software|coding|programming|developer)/i.test(q)) {
+  // 7. FULL STACK / WEB DEVELOPMENT (when user explicitly requests developer / coding)
+  if (/\b(full[- ]?stack|frontend|backend|web dev|javascript|react|node|typescript|mern|software|coding|programming|developer|software engineer)\b/i.test(q)) {
     return {
       jobKeywords: "Full Stack Developer",
       guideHeading: "Full-Stack & Web Engineering Playbook",
@@ -858,7 +1150,6 @@ export function getDomainRoadmapData(title: string, goal?: string, category?: st
       },
     }
   }
-
   // 6. GENERAL / CUSTOM GOAL (Completely tailored to whatever the user entered)
   const cleanTitle = title.length > 55 ? title.slice(0, 52) + "..." : title || "Goal Roadmap"
   const cleanGoal = goal ? (goal.length > 75 ? goal.slice(0, 72) + "..." : goal) : "Define core constraints and target milestones"
@@ -1257,7 +1548,6 @@ export function SimulationCanvas() {
   const [title, setTitle] = useState(passedTitle || "Decision Simulation Map")
   const [results, setResults] = useState<SimulationEngineResult | null>(null)
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
-  const [showGuide, setShowGuide] = useState(false)
 
   const existing = useQuery<Simulation>({
     queryKey: ["simulation", id],
@@ -1265,22 +1555,31 @@ export function SimulationCanvas() {
     queryFn: () => getSimulationById(id),
   })
 
-  const handleAutoBuildRoadmap = () => {
-    const currentGoal = existing.data?.goal || passedGoal || (nodes.find((n) => n.type === "start")?.data.description as string) || ""
-    const currentCategory = existing.data?.category || passedCategory || ""
-    const roadmap = buildIntelligentRoadmap(title || passedTitle, currentGoal, currentCategory)
-    setNodes(roadmap.nodes)
-    setEdges(roadmap.edges)
-    setResults(null)
-    toast.success("AI generated a structured roadmap tailored to your specific goal!")
-  }
+  const getEffectiveSimulationContext = useCallback(() => {
+    const startNode = nodes.find((n) => n.type === "start")
+    const startTitle = (startNode?.data.title as string)?.trim()
+    const startDesc = (startNode?.data.description as string)?.trim()
 
-  const domainData = useMemo(() => {
-    const currentTitle = title || existing.data?.title || passedTitle || "Decision Roadmap"
-    const currentGoal = existing.data?.goal || passedGoal || (nodes.find((n) => n.type === "start")?.data.description as string) || ""
-    const currentCategory = existing.data?.category || passedCategory || ""
-    return getDomainRoadmapData(currentTitle, currentGoal, currentCategory)
-  }, [title, existing.data?.title, existing.data?.goal, existing.data?.category, passedTitle, passedGoal, passedCategory, nodes])
+    const effectiveTitle =
+      (startTitle && startTitle !== "Define primary decision" ? startTitle : "") ||
+      title?.trim() ||
+      existing.data?.title?.trim() ||
+      passedTitle ||
+      "Decision Roadmap"
+
+    const effectiveGoal =
+      (startDesc && startDesc !== "Define core constraints and target milestones" ? startDesc : "") ||
+      (existing.data?.goal && existing.data.goal !== "Evaluate potential pathways" ? existing.data.goal : "") ||
+      passedGoal ||
+      ""
+
+    const effectiveCategory =
+      (existing.data?.category && existing.data.category !== "General" ? existing.data.category : "") ||
+      passedCategory ||
+      "Career"
+
+    return { effectiveTitle, effectiveGoal, effectiveCategory, startNode }
+  }, [nodes, title, existing.data?.title, existing.data?.goal, existing.data?.category, passedTitle, passedGoal, passedCategory])
 
   const onConnect = useCallback(
     (connection: Connection) =>
@@ -1328,10 +1627,11 @@ export function SimulationCanvas() {
   // Save to MongoDB Compass
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const { effectiveTitle, effectiveGoal, effectiveCategory } = getEffectiveSimulationContext()
       const payload = {
-        title: title.trim() || "Untitled Simulation",
-        category: "General",
-        goal: "Evaluate potential pathways",
+        title: effectiveTitle,
+        category: effectiveCategory,
+        goal: effectiveGoal || "Evaluate potential pathways",
         status: "active" as const,
         nodes: nodes.map((n) => ({
           nodeId: n.id,
@@ -1473,24 +1773,6 @@ export function SimulationCanvas() {
           <div className="canvas-actions">
             <button
               className="canvas-action"
-              style={{ background: "#fbf6ec", color: "#8c6833", borderColor: "#ecdac0", fontWeight: 600 }}
-              onClick={handleAutoBuildRoadmap}
-              title="Automatically generate a complete roadmap tailored to this goal"
-            >
-              <Sparkles size={14} color="#8c6833" />
-              Auto-Build Roadmap
-            </button>
-            <button
-              className="canvas-action"
-              style={{ background: showGuide ? "#efebe3" : "#fff", fontWeight: 500 }}
-              onClick={() => setShowGuide((prev) => !prev)}
-              title="View languages checklist, resume format, and crucial interview questions"
-            >
-              <BookOpen size={14} />
-              {showGuide ? "Close Guide" : "Study & Interview Guide"}
-            </button>
-            <button
-              className="canvas-action"
               onClick={() => {
                 if (window.confirm("Reset canvas to clean template?")) {
                   setNodes(defaultTemplateNodes)
@@ -1591,141 +1873,6 @@ export function SimulationCanvas() {
             </div>
           </div>
         </div>
-
-        {showGuide && (
-          <aside className="results-drawer" style={{ width: "min(490px, calc(100vw - 30px))", zIndex: 12 }}>
-            <div className="drawer-heading">
-              <div>
-                <span className="eyebrow">ROADMAP &amp; INTERVIEW PLAYBOOK</span>
-                <h2 style={{ fontSize: 16 }}>{domainData.guideHeading}</h2>
-              </div>
-              <button className="icon-button" onClick={() => setShowGuide(false)} aria-label="Close guide">
-                <X size={17} />
-              </button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 14 }}>
-              {/* SECTION: BEST COURSES IN THE MARKET */}
-              <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  📚 Top Curated Market Courses &amp; Resource Links
-                </h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  {domainData.courses.map((course, idx) => (
-                    <a
-                      key={idx}
-                      href={course.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        padding: "8px 10px",
-                        borderRadius: 6,
-                        background: "#fff",
-                        border: "1px solid #e2ddd3",
-                        textDecoration: "none",
-                        color: "#322e28",
-                      }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <strong style={{ fontSize: 11 }}>{course.title}</strong>
-                        <ExternalLink size={10} color="#8c6e3b" />
-                      </div>
-                      <span style={{ fontSize: 9, color: "#777065" }}>
-                        {course.provider} • {course.badge}
-                      </span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-
-              {/* SECTION: LINKEDIN & NAUKRI PORTALS */}
-              {domainData.jobKeywords && domainData.jobKeywords.trim().length > 0 && (
-                <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                  <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                    💼 Sourcing Opportunities for &quot;{domainData.jobKeywords}&quot;
-                  </h3>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    <a
-                      href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(domainData.jobKeywords)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="portal-link-btn portal-btn-linkedin"
-                      style={{ fontSize: 10, padding: "5px 10px" }}
-                    >
-                      LinkedIn: {domainData.jobKeywords.slice(0, 20)} <ExternalLink size={10} />
-                    </a>
-                    <a
-                      href={`https://www.naukri.com/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-jobs`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="portal-link-btn portal-btn-naukri"
-                      style={{ fontSize: 10, padding: "5px 10px" }}
-                    >
-                      Naukri Roles <ExternalLink size={10} />
-                    </a>
-                    <a
-                      href={`https://internshala.com/internships/${encodeURIComponent(domainData.jobKeywords).replace(/%20/g, "-")}-internship`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="portal-link-btn portal-btn-internshala"
-                      style={{ fontSize: 10, padding: "5px 10px" }}
-                    >
-                      Internshala <ExternalLink size={10} />
-                    </a>
-                    <a
-                      href="https://wellfound.com/jobs"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="portal-link-btn portal-btn-wellfound"
-                      style={{ fontSize: 10, padding: "5px 10px" }}
-                    >
-                      Wellfound Startups <ExternalLink size={10} />
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {/* SECTION 1: LANGUAGES & TECH / FRAMEWORKS */}
-              <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  {domainData.jobKeywords ? "💻 1. Exact Languages, Tools & Methodologies to Learn" : "🔍 1. Key Frameworks, Tools & Protocols"}
-                </h3>
-                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, lineHeight: 1.6, color: "#5c564c" }}>
-                  {domainData.guide.languagesAndTools.map((item, idx) => (
-                    <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
-                  ))}
-                </ul>
-              </div>
-
-              {/* SECTION 2: HOW TO MAKE RESUME / EXECUTION PRINCIPLES */}
-              <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  {domainData.jobKeywords ? "📄 2. High-Impact ATS Resume & Proof of Work Blueprint" : "📋 2. Execution Principles & Success Blueprint"}
-                </h3>
-                <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11, lineHeight: 1.6, color: "#5c564c" }}>
-                  {domainData.guide.resumeRules.map((rule, idx) => (
-                    <li key={idx} dangerouslySetInnerHTML={{ __html: rule }} />
-                  ))}
-                </ul>
-              </div>
-
-              {/* SECTION 3: HOW TO CRACK INTERVIEW / CRITICAL QUESTIONS */}
-              <div style={{ background: "#f8f6f2", border: "1px solid #eae5db", borderRadius: 10, padding: 14 }}>
-                <h3 style={{ margin: "0 0 8px", fontSize: 12, fontWeight: 700, color: "#322e28" }}>
-                  {domainData.jobKeywords ? "🎯 3. Top Crucial Technical & Screening Interview Questions" : "🎯 3. Critical Questions & Alignment Protocols"}
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 9, fontSize: 11, color: "#5c564c" }}>
-                  {domainData.guide.interviewQuestions.map((qa, idx) => (
-                    <div key={idx}>
-                      <strong style={{ color: "#2f2b25" }}>{qa.q}</strong>
-                      <p style={{ margin: "2px 0 0", lineHeight: 1.45 }}>{qa.a}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </aside>
-        )}
 
         {results && (
           <aside className="results-drawer">

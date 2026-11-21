@@ -208,7 +208,7 @@ const sendMessageService = async (userId, interviewId, content) => {
         content: m.content,
     }));
     // Generate AI response
-    const { response, suggestedQuestions } = await (0, futureSelf_ai_service_1.generateFutureSelfChatResponseAI)({
+    const { response, spokenText, suggestedQuestions } = await (0, futureSelf_ai_service_1.generateFutureSelfChatResponseAI)({
         profile: profile.generatedProfile,
         history: historyPayload,
         userMessage: content.trim(),
@@ -220,7 +220,7 @@ const sendMessageService = async (userId, interviewId, content) => {
         role: "assistant",
         content: response,
         metadata: {
-            spokenTranscript: response,
+            spokenTranscript: spokenText || response,
             suggestedQuestions,
         },
     });
