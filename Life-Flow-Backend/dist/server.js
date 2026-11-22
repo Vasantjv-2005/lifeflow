@@ -16,6 +16,7 @@ const scenario_routes_1 = __importDefault(require("./routes/scenario.routes"));
 const simulation_routes_1 = __importDefault(require("./routes/simulation.routes"));
 const ai_routes_1 = __importDefault(require("./routes/ai.routes"));
 const futureSelf_routes_1 = __importDefault(require("./routes/futureSelf.routes"));
+const resumeTimeMachine_routes_1 = __importDefault(require("./routes/resumeTimeMachine.routes"));
 const notFound_middleware_1 = require("./middleware/notFound.middleware");
 const error_middleware_1 = require("./middleware/error.middleware");
 const app = (0, express_1.default)();
@@ -46,6 +47,7 @@ app.use("/api/scenarios", scenario_routes_1.default);
 app.use("/api/simulations", simulation_routes_1.default);
 app.use("/api/ai", ai_routes_1.default);
 app.use("/api/future-self", futureSelf_routes_1.default);
+app.use("/api/resume-time-machine", resumeTimeMachine_routes_1.default);
 // Not-found and error middleware must come after all routes.
 app.use(notFound_middleware_1.notFoundMiddleware);
 app.use(error_middleware_1.errorMiddleware);

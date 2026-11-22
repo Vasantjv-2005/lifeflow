@@ -14,6 +14,7 @@ import scenarioRoutes from "./routes/scenario.routes";
 import simulationRoutes from "./routes/simulation.routes";
 import aiRoutes from "./routes/ai.routes";
 import futureSelfRoutes from "./routes/futureSelf.routes";
+import resumeTimeMachineRoutes from "./routes/resumeTimeMachine.routes";
 
 import { notFoundMiddleware } from "./middleware/notFound.middleware";
 import { errorMiddleware } from "./middleware/error.middleware";
@@ -54,6 +55,7 @@ app.use("/api/scenarios", scenarioRoutes);
 app.use("/api/simulations", simulationRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/future-self", futureSelfRoutes);
+app.use("/api/resume-time-machine", resumeTimeMachineRoutes);
 
 // Not-found and error middleware must come after all routes.
 app.use(notFoundMiddleware);

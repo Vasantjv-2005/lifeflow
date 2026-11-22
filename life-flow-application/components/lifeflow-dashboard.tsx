@@ -16,6 +16,7 @@ import {
   ExternalLink,
   FilePlus2,
   GitBranch,
+  History,
   LayoutDashboard,
   ListTodo,
   LogOut,
@@ -37,6 +38,7 @@ const navigation = [
   { label: "Simulations", href: "/simulations", icon: GitBranch },
   { label: "AI studio", href: "/ai-studio", icon: Sparkles },
   { label: "Future Self", href: "/workspace/future-self", icon: Compass },
+  { label: "Resume Time Machine", href: "/workspace/resume-time-machine", icon: History },
 ]
 
 const statusStyle: Record<string, string> = {
