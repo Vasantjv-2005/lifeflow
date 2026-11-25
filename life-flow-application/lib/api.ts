@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const DEFAULT_BACKEND_URL = "https://lifeflow-i9gr.onrender.com"
+const DEFAULT_BACKEND_URL = "https://lifeflow-1-qzfb.onrender.com"
 
 const resolveApiBaseUrl = (): string => {
   const raw = (process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL).trim().replace(/\/+$/, "")
