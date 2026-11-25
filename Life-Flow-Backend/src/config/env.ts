@@ -81,3 +81,19 @@ const parseEnv = () => {
 
 export const env = parseEnv();
 export type Env = z.infer<typeof envSchema>;
+
+/**
+ * Parses comma-separated CLIENT_URL values into normalized origin strings.
+ */
+export const getAllowedClientOrigins = (): string[] => {
+    return env.CLIENT_URL.split(",")
+        .map((origin) => origin.trim().replace(/\/+$/, ""))
+        .filter(Boolean);
+};
+
+/**
+ * Returns the primary frontend URL (first entry in CLIENT_URL).
+ */
+export const getPrimaryClientUrl = (): string => {
+    return getAllowedClientOrigins()[0] || "http://localhost:3000";
+};

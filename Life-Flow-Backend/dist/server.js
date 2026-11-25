@@ -21,12 +21,25 @@ const notFound_middleware_1 = require("./middleware/notFound.middleware");
 const error_middleware_1 = require("./middleware/error.middleware");
 const app = (0, express_1.default)();
 const PORT = env_1.env.PORT;
-const CLIENT_URL = env_1.env.CLIENT_URL;
+const allowedOrigins = (0, env_1.getAllowedClientOrigins)();
+// Trust reverse proxy (Render / Vercel / Cloudflare) for secure cookies & rate limiting
+app.set("trust proxy", 1);
 // Security middleware
 app.use((0, helmet_1.default)());
-// CORS configuration
+// CORS configuration supporting single or comma-separated CLIENT_URL origins
 app.use((0, cors_1.default)({
-    origin: CLIENT_URL,
+    origin: (origin, callback) => {
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+        const normalizedOrigin = origin.replace(/\/+$/, "");
+        if (allowedOrigins.includes(normalizedOrigin)) {
+            callback(null, true);
+            return;
+        }
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
 }));
 // Request parsing middleware
@@ -57,7 +70,7 @@ const startServer = async () => {
         await (0, db_1.default)();
         app.listen(PORT, () => {
             console.log(`LifeFlow Backend running at http://localhost:${PORT}`);
-            console.log(`Allowed frontend origin: ${CLIENT_URL}`);
+            console.log(`Allowed frontend origins: ${allowedOrigins.join(", ")}`);
         });
     }
     catch (error) {

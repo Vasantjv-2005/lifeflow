@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -63,23 +63,34 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const setUser = useAuthStore((state) => state.setUser)
   const [showPassword, setShowPassword] = useState(false)
   const [pending, setPending] = useState(false)
+  const oauthErrorShownRef = useRef(false)
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      const err = params.get("error")
-      if (err) {
-        if (err === "state_mismatch") {
-          toast.error("Google authentication session expired. Please try again.")
-        } else if (err === "missing_code") {
-          toast.error("Google sign-in was cancelled or missing code.")
-        } else if (err === "google_disabled") {
-          toast.error("Google OAuth is not configured on the backend.")
-        } else {
-          toast.error("Google sign-in failed. Please try again or use your password.")
-        }
-      }
+    if (typeof window === "undefined" || oauthErrorShownRef.current) return
+    const params = new URLSearchParams(window.location.search)
+    const err = params.get("error")
+    if (!err) return
+
+    oauthErrorShownRef.current = true
+    const cleanUrl = `${window.location.pathname}${window.location.hash || ""}`
+    window.history.replaceState({}, "", cleanUrl)
+
+    let message = "Google sign-in failed. Please try again or use your password."
+    if (err === "state_mismatch" || err.toLowerCase().includes("state mismatch")) {
+      message = "Authentication session expired. Please try again."
+    } else if (err === "missing_code" || err.toLowerCase().includes("code missing")) {
+      message = "Sign-in was cancelled or authorization code was missing."
+    } else if (err === "access_denied") {
+      message = "Sign-in was cancelled."
+    } else if (err === "google_disabled") {
+      message = "Google OAuth is not configured on the backend."
+    } else if (err === "github_disabled") {
+      message = "GitHub OAuth is not configured on the backend."
+    } else if (err.trim()) {
+      message = err
     }
+
+    toast.error(message, { id: "oauth-error" })
   }, [])
 
   const form = useForm<{ name: string; email: string; password: string }>({

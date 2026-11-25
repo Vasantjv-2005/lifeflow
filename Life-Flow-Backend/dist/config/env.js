@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.env = void 0;
+exports.getPrimaryClientUrl = exports.getAllowedClientOrigins = exports.env = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const zod_1 = require("zod");
 // Load environment variables before validation
@@ -80,3 +80,19 @@ const parseEnv = () => {
     return parsed.data;
 };
 exports.env = parseEnv();
+/**
+ * Parses comma-separated CLIENT_URL values into normalized origin strings.
+ */
+const getAllowedClientOrigins = () => {
+    return exports.env.CLIENT_URL.split(",")
+        .map((origin) => origin.trim().replace(/\/+$/, ""))
+        .filter(Boolean);
+};
+exports.getAllowedClientOrigins = getAllowedClientOrigins;
+/**
+ * Returns the primary frontend URL (first entry in CLIENT_URL).
+ */
+const getPrimaryClientUrl = () => {
+    return (0, exports.getAllowedClientOrigins)()[0] || "http://localhost:3000";
+};
+exports.getPrimaryClientUrl = getPrimaryClientUrl;

@@ -4,7 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
-import { env } from "./config/env";
+import { env, getAllowedClientOrigins } from "./config/env";
 import connectDB from "./config/db";
 
 import authRoutes from "./routes/auth.routes";
@@ -22,15 +22,29 @@ import { errorMiddleware } from "./middleware/error.middleware";
 const app = express();
 
 const PORT = env.PORT;
-const CLIENT_URL = env.CLIENT_URL;
+const allowedOrigins = getAllowedClientOrigins();
+
+// Trust reverse proxy (Render / Vercel / Cloudflare) for secure cookies & rate limiting
+app.set("trust proxy", 1);
 
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration supporting single or comma-separated CLIENT_URL origins
 app.use(
     cors({
-        origin: CLIENT_URL,
+        origin: (origin, callback) => {
+            if (!origin) {
+                callback(null, true);
+                return;
+            }
+            const normalizedOrigin = origin.replace(/\/+$/, "");
+            if (allowedOrigins.includes(normalizedOrigin)) {
+                callback(null, true);
+                return;
+            }
+            callback(new Error(`Origin ${origin} not allowed by CORS`));
+        },
         credentials: true,
     })
 );
@@ -68,7 +82,7 @@ const startServer = async (): Promise<void> => {
 
         app.listen(PORT, () => {
             console.log(`LifeFlow Backend running at http://localhost:${PORT}`);
-            console.log(`Allowed frontend origin: ${CLIENT_URL}`);
+            console.log(`Allowed frontend origins: ${allowedOrigins.join(", ")}`);
         });
     } catch (error: unknown) {
         console.error("Failed to start LifeFlow Backend:", error);

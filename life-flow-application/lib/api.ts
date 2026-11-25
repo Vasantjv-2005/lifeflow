@@ -192,11 +192,22 @@ export type User = {
 }
 
 export const getGoogleAuthUrl = (promptSelect: boolean = true) => {
-  return `${API_BASE_URL}/auth/google${promptSelect ? "?prompt=select_account" : ""}`
+  const params = new URLSearchParams()
+  if (promptSelect) params.set("prompt", "select_account")
+  if (typeof window !== "undefined") {
+    params.set("redirect_origin", window.location.origin)
+  }
+  const qs = params.toString()
+  return `${API_BASE_URL}/auth/google${qs ? `?${qs}` : ""}`
 }
 
 export const getGithubAuthUrl = () => {
-  return `${API_BASE_URL}/auth/github`
+  const params = new URLSearchParams()
+  if (typeof window !== "undefined") {
+    params.set("redirect_origin", window.location.origin)
+  }
+  const qs = params.toString()
+  return `${API_BASE_URL}/auth/github${qs ? `?${qs}` : ""}`
 }
 
 // ==================== AUTH API ====================
