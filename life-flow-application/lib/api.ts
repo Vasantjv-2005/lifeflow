@@ -1,7 +1,16 @@
 import axios from "axios"
 
+const DEFAULT_BACKEND_URL = "https://lifeflow-i9gr.onrender.com"
+
+const resolveApiBaseUrl = (): string => {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || DEFAULT_BACKEND_URL).trim().replace(/\/+$/, "")
+  return raw.endsWith("/api") ? raw : `${raw}/api`
+}
+
+export const API_BASE_URL = resolveApiBaseUrl()
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 })
@@ -183,13 +192,11 @@ export type User = {
 }
 
 export const getGoogleAuthUrl = (promptSelect: boolean = true) => {
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
-  return `${base}/auth/google${promptSelect ? "?prompt=select_account" : ""}`
+  return `${API_BASE_URL}/auth/google${promptSelect ? "?prompt=select_account" : ""}`
 }
 
 export const getGithubAuthUrl = () => {
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
-  return `${base}/auth/github`
+  return `${API_BASE_URL}/auth/github`
 }
 
 // ==================== AUTH API ====================
